@@ -28,7 +28,7 @@ public class BeancountParser {
     return parseJournalImpl(reader, CharStreams::fromReader);
   }
 
-  public static AtomicLong ms = new AtomicLong(0);
+  public static AtomicLong ns = new AtomicLong(0);
   public static AtomicLong c = new AtomicLong(0);
 
   private <T> Journal parseJournalImpl(T t, CharStreamFunction<T> func) {
@@ -48,9 +48,9 @@ public class BeancountParser {
 
     final BeancountAntlrToLanguage toLanguage = new BeancountAntlrToLanguage(tokens);
 
-    long a = System.currentTimeMillis();
+    long a = System.nanoTime();
     final BeancountAntlrParser.JournalContext journalContext = antlrParser.journal();
-    ms.addAndGet(System.currentTimeMillis() - a);
+    ns.addAndGet(System.nanoTime() - a);
     c.incrementAndGet();
 
     //    String tokensDebug =
@@ -63,7 +63,8 @@ public class BeancountParser {
 
     @SuppressWarnings("UnnecessaryLocalVariable")
     final Journal journal = toLanguage.createJournal(journalContext);
-
+    //    ns.addAndGet(System.nanoTime() - a);
+    //    c.incrementAndGet();
     return journal;
   }
 }

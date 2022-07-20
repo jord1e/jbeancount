@@ -50,6 +50,9 @@ public final class FlattenJournal {
           return TraversalControl.CONTINUE;
         }
       }
+      if (removeIncludePragma) {
+        TreeTransformerUtil.deleteNode(data);
+      }
       final Journal journal = ip.journal();
       if (journal != null) {
         resolvedPaths.add(ip.filename());
@@ -61,7 +64,7 @@ public final class FlattenJournal {
           }
         }
       }
-      return removeIncludePragma ? TreeTransformerUtil.deleteNode(data) : TraversalControl.CONTINUE;
+      return TraversalControl.CONTINUE;
     }
   }
 }

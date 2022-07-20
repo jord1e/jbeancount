@@ -30,6 +30,7 @@ import nl.jrdie.beancount.language.DirectiveNode;
 import nl.jrdie.beancount.language.DivisionExpression;
 import nl.jrdie.beancount.language.EventDirective;
 import nl.jrdie.beancount.language.Flag;
+import nl.jrdie.beancount.language.IncludePragma;
 import nl.jrdie.beancount.language.Journal;
 import nl.jrdie.beancount.language.JournalDeclaration;
 import nl.jrdie.beancount.language.Link;
@@ -44,12 +45,16 @@ import nl.jrdie.beancount.language.NegationExpression;
 import nl.jrdie.beancount.language.NilValue;
 import nl.jrdie.beancount.language.NoteDirective;
 import nl.jrdie.beancount.language.OpenDirective;
+import nl.jrdie.beancount.language.OptionPragma;
 import nl.jrdie.beancount.language.PadDirective;
 import nl.jrdie.beancount.language.ParenthesisedExpression;
+import nl.jrdie.beancount.language.PluginPragma;
 import nl.jrdie.beancount.language.PlusExpression;
+import nl.jrdie.beancount.language.PopTagPragma;
 import nl.jrdie.beancount.language.Posting;
 import nl.jrdie.beancount.language.PriceAnnotation;
 import nl.jrdie.beancount.language.PriceDirective;
+import nl.jrdie.beancount.language.PushTagPragma;
 import nl.jrdie.beancount.language.QueryDirective;
 import nl.jrdie.beancount.language.StringValue;
 import nl.jrdie.beancount.language.SubtractionExpression;
@@ -146,10 +151,60 @@ public class BeancountPrinter {
         print(pw, qd);
       } else if (declaration instanceof CustomDirective cd) {
         print(pw, cd);
+      } else if (declaration instanceof IncludePragma ip) {
+        print(pw, ip);
+      } else if (declaration instanceof OptionPragma op) {
+        print(pw, op);
+      } else if (declaration instanceof PluginPragma pp) {
+        print(pw, pp);
+      } else if (declaration instanceof PushTagPragma ptp) {
+        print(pw, ptp);
+      } else if (declaration instanceof PopTagPragma ptp) {
+        print(pw, ptp);
+      } else {
+        Assert.shouldNeverHappen();
+        return null;
       }
     }
 
     return sw.toString();
+  }
+
+  private void print(PrintWriter pw, IncludePragma ip) {
+    pw.write("include \"");
+    pw.write(ip.filename());
+    pw.write('"');
+    nl(pw);
+  }
+
+  private void print(PrintWriter pw, OptionPragma op) {
+    pw.write("option \"");
+    pw.write(op.name());
+    pw.write("\" \"");
+    pw.write(op.value());
+    pw.write('"');
+    nl(pw);
+  }
+
+  private void print(PrintWriter pw, PluginPragma pp) {
+    pw.write("plugin \"");
+    pw.write(pp.name());
+    if (pp.config() != null) {
+      pw.write("\" \"");
+      pw.write(pp.config());
+    }
+    pw.write('"');
+    nl(pw);
+  }
+
+  private void print(PrintWriter pw, PopTagPragma ptp) {
+    throw new UnsupportedOperationException(
+        "The poptag pragma is not yet supported by the printer");
+  }
+
+  private void print(PrintWriter pw, PushTagPragma ptp) {
+    throw new UnsupportedOperationException(
+        "The pushtag pragma is not yet supported by the printer");
   }
 
   private void print(PrintWriter pw, CustomDirective cd) {
@@ -506,6 +561,7 @@ public class BeancountPrinter {
             print(pw, lv);
           } else if (l == null) {
             // TODO, Currently a comment; do nothing
+            pw.print(';');
           } else {
             Assert.shouldNeverHappen();
           }

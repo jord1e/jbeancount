@@ -11,10 +11,10 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(
-    name = "blend",
+    name = "combine",
     description =
         "This command (recursively) aggregates all the journals included using include pragmas and creates one composite journal")
-public class BlendJournal implements Callable<Integer> {
+public class CombineJournal implements Callable<Integer> {
 
   @Parameters(index = "0", description = "The Beancount file at the root of your inclusion tree")
   private Path file;
@@ -27,11 +27,16 @@ public class BlendJournal implements Callable<Integer> {
   private boolean recurse;
 
   @Option(
-      names = "--keep-include",
+      names = "--keep-include-pragmas",
       description =
           "Keep the include pragmas present in the composite journal (just before the contents of said journal)",
       defaultValue = "false")
   private boolean keepIncludePragmas;
+
+  @Option(
+      names = {"-o", "--output"},
+      description = "The output file. When this is not specified stdout will be used")
+  private Path output;
 
   @Override
   public Integer call() {

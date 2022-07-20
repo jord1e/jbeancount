@@ -82,7 +82,7 @@ balance : date=DATE BALANCE account amountWithTolerance tagsAndLinks COMMENT? EO
 open : date=DATE OPEN a=account cl=commodityList? bm=bookingMethod? tagsAndLinks EOL m=indentedMetadata;
 close : date=DATE CLOSE a=account tagsAndLinks EOL m=indentedMetadata;
 commodity : date=DATE COMMODITY c=CURRENCY tagsAndLinks EOL m=indentedMetadata;
-pad : date=DATE PAD targetAccount=account sourceAccount=account tagsAndLinks EOL m=indentedMetadata;
+pad : date=DATE PAD sourceAccount=account targetAccount=account tagsAndLinks EOL m=indentedMetadata;
 document : date=DATE DOCUMENT a=account filename=STRING tagsAndLinks EOL m=indentedMetadata;
 note : date=DATE NOTE account noteComment=STRING tagsAndLinks EOL m=indentedMetadata;
 event : date=DATE EVENT type=STRING description=STRING tagsAndLinks EOL m=indentedMetadata;
