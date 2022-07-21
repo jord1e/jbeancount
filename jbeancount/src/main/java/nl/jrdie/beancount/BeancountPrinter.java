@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
+import nl.jrdie.beancount.annotation.Beta;
 import nl.jrdie.beancount.language.Account;
 import nl.jrdie.beancount.language.AdditionExpression;
 import nl.jrdie.beancount.language.Amount;
@@ -18,6 +20,7 @@ import nl.jrdie.beancount.language.BalanceDirective;
 import nl.jrdie.beancount.language.BinaryCompoundExpression;
 import nl.jrdie.beancount.language.BooleanValue;
 import nl.jrdie.beancount.language.CloseDirective;
+import nl.jrdie.beancount.language.Comment;
 import nl.jrdie.beancount.language.Commodity;
 import nl.jrdie.beancount.language.CommodityDirective;
 import nl.jrdie.beancount.language.CompoundAmount;
@@ -28,6 +31,7 @@ import nl.jrdie.beancount.language.CustomDirective;
 import nl.jrdie.beancount.language.DateValue;
 import nl.jrdie.beancount.language.DirectiveNode;
 import nl.jrdie.beancount.language.DivisionExpression;
+import nl.jrdie.beancount.language.Eol;
 import nl.jrdie.beancount.language.EventDirective;
 import nl.jrdie.beancount.language.Flag;
 import nl.jrdie.beancount.language.IncludePragma;
@@ -64,33 +68,107 @@ import nl.jrdie.beancount.language.TagValue;
 import nl.jrdie.beancount.language.TransactionDirective;
 import nl.jrdie.beancount.language.UnaryCompoundExpression;
 import nl.jrdie.beancount.util.Assert;
+import org.jetbrains.annotations.Nullable;
 
-public class BeancountPrinter {
+public final class BeancountPrinter {
 
-  private BeancountPrinter() {}
+  private static final Pattern VALID_INDENTATION_SEQUENCE_PATTERN = Pattern.compile("^[ \t]+$");
 
-  public static BeancountPrinter newPrinter() {
-    return new BeancountPrinter();
+  public static Builder newPrinter() {
+    return new Builder();
   }
 
-  public int currencyColumn = 61; // Fava default
-  public boolean compactMode = false;
+  @Beta
+  public static BeancountPrinter newDefaultPrinter() {
+    return newPrinter()
+        .indentationSequence("  ") // Two spaces
+        .currencyColumn(61) // TODO This is temporary, infer currency column from file context
+        .compactMode(false)
+        .build();
+  }
 
+  @Beta
+  public static BeancountPrinter newFavaPrinter() {
+    return newPrinter()
+        .indentationSequence("  ") // Two spaces
+        .currencyColumn(61) // Fava default
+        .compactMode(false)
+        .build();
+  }
+
+  private final int currencyColumn;
+  private final String indentationSequence;
+  private final boolean compactMode;
+
+  // Mutable values
   private int nestingLevel = 0;
-  private int dentSize = 2;
-  private int currentDent;
   private String indent;
 
-  // Two levels of indentation is often the maximum (metadata on postings)
+  // Two levels of indentation is often the maximum (metadata on postings is the 2nd level)
   private String[] indents = new String[2];
 
-  public void indent() {
+  private BeancountPrinter(int currencyColumn, String indentationSequence, boolean compactMode) {
+    if (currencyColumn < 0) {
+      throw new IllegalArgumentException("The currency column must be positive");
+    }
+    if (indentationSequence.isEmpty()) {
+      throw new IllegalArgumentException("The indentation sequence must be nonempty whitespace");
+    }
+    if (!VALID_INDENTATION_SEQUENCE_PATTERN.asMatchPredicate().test(indentationSequence)) {
+      throw new IllegalArgumentException(
+          "The indentation sequence must be composed of spaces and/or tabs");
+    }
+    this.currencyColumn = currencyColumn;
+    this.indentationSequence = indentationSequence;
+    this.compactMode = compactMode;
+  }
+
+  public static final class Builder {
+    private int currencyColumn;
+    private String indentationSequence;
+    private boolean compactMode;
+
+    private Builder() {}
+
+    public BeancountPrinter build() {
+      return new BeancountPrinter(currencyColumn, indentationSequence, compactMode);
+    }
+
+    public int currencyColumn() {
+      return currencyColumn;
+    }
+
+    public Builder currencyColumn(int currencyColumn) {
+      this.currencyColumn = currencyColumn;
+      return this;
+    }
+
+    public String indentationSequence() {
+      return indentationSequence;
+    }
+
+    public Builder indentationSequence(String indentationSequence) {
+      this.indentationSequence = indentationSequence;
+      return this;
+    }
+
+    public boolean compactMode() {
+      return compactMode;
+    }
+
+    public Builder compactMode(boolean compactMode) {
+      this.compactMode = compactMode;
+      return this;
+    }
+  }
+
+  private void indent() {
     nestingLevel++;
     maybeResizeIndents();
     updateIndent();
   }
 
-  public void dedent() {
+  private void dedent() {
     nestingLevel--;
     updateIndent();
   }
@@ -102,25 +180,25 @@ public class BeancountPrinter {
   }
 
   private void updateIndent() {
-    currentDent = nestingLevel * dentSize;
     this.indent =
         Objects.requireNonNullElseGet(
-            indents[nestingLevel], () -> indents[nestingLevel] = " ".repeat(currentDent));
+            indents[nestingLevel],
+            () -> indents[nestingLevel] = indentationSequence.repeat(nestingLevel));
   }
 
-  public void dent(PrintWriter pw) {
+  private void dent(PrintWriter pw) {
     pw.print(indent);
   }
 
-  public void nl(PrintWriter pw) {
+  private void nl(PrintWriter pw) {
     pw.print('\n');
   }
 
-  public void space(PrintWriter pw) {
+  private void space(PrintWriter pw) {
     pw.print(' ');
   }
 
-  public void quote(PrintWriter pw) {
+  private void quote(PrintWriter pw) {
     pw.print('"');
   }
 
@@ -161,9 +239,12 @@ public class BeancountPrinter {
         print(pw, ptp);
       } else if (declaration instanceof PopTagPragma ptp) {
         print(pw, ptp);
+      } else if (declaration instanceof Comment comment) {
+        print(pw, comment);
+      } else if (declaration instanceof Eol) {
+        nl(pw);
       } else {
-        Assert.shouldNeverHappen();
-        return null;
+        throw new BeancountInvalidStateException();
       }
     }
 
@@ -173,8 +254,7 @@ public class BeancountPrinter {
   private void print(PrintWriter pw, IncludePragma ip) {
     pw.write("include \"");
     pw.write(ip.filename());
-    pw.write('"');
-    nl(pw);
+    pw.write("\"\n");
   }
 
   private void print(PrintWriter pw, OptionPragma op) {
@@ -182,8 +262,7 @@ public class BeancountPrinter {
     pw.write(op.name());
     pw.write("\" \"");
     pw.write(op.value());
-    pw.write('"');
-    nl(pw);
+    pw.write("\"\n");
   }
 
   private void print(PrintWriter pw, PluginPragma pp) {
@@ -193,8 +272,7 @@ public class BeancountPrinter {
       pw.write("\" \"");
       pw.write(pp.config());
     }
-    pw.write('"');
-    nl(pw);
+    pw.write("\"\n");
   }
 
   private void print(PrintWriter pw, PopTagPragma ptp) {
@@ -214,13 +292,22 @@ public class BeancountPrinter {
     pw.print(cd.name());
     pw.print('"');
     loop(cd.values(), () -> space(pw), v -> print(pw, v), () -> space(pw));
-    // Custom handling because tags and links can be values
+    // Custom handling because tags and links can be values, do not use printDirective
+    final Comment comment = cd.comment();
+    if (comment != null) {
+      print(pw, comment);
+    }
     nl(pw);
     print(pw, cd.metadata(), this::nl);
   }
 
   private void print(PrintWriter pw, QueryDirective qd) {
-    pw.format("%s query \"%s\" \"%s\"", date(qd.date()), qd.name(), qd.sql());
+    print(pw, qd.date());
+    pw.print(" query \"");
+    pw.print(qd.name());
+    pw.print("\" \"");
+    pw.print(qd.sql());
+    pw.print('"');
     printDirective(pw, qd);
   }
 
@@ -236,30 +323,36 @@ public class BeancountPrinter {
     pw.write(" note ");
     pw.write(nd.account().account());
     quote(pw);
-    pw.write(nd.comment());
+    pw.write(nd.note());
     quote(pw);
     printDirective(pw, nd);
   }
 
-  public String date(LocalDate date) {
+  private String date(LocalDate date) {
     return DateTimeFormatter.ISO_DATE.format(date);
   }
 
-  public String account(Account account) {
+  private String account(Account account) {
     return account.account();
   }
 
-  public String commodity(Commodity commodity) {
+  private String commodity(Commodity commodity) {
     return commodity.commodity();
   }
 
   private void printDirective(PrintWriter pw, DirectiveNode<?, ?> node) {
+    // Please note that the custom directive has different behaviour!
     print(pw, this::space, node.tagsAndLinks());
+    final Comment comment = node.comment();
+    if (comment != null) {
+      space(pw);
+      print(pw, comment);
+    }
     nl(pw);
     print(pw, node.metadata(), this::nl);
   }
 
-  public void print(PrintWriter pw, BalanceDirective bd) {
+  private void print(PrintWriter pw, BalanceDirective bd) {
     final String account = account(bd.account());
     final String amount = arithmeticExpression(bd.amount().expression());
     final int col =
@@ -274,14 +367,14 @@ public class BeancountPrinter {
     printDirective(pw, bd);
   }
 
-  public void print(PrintWriter pw, PadDirective pd) {
+  private void print(PrintWriter pw, PadDirective pd) {
     final String sourceAccount = account(pd.sourceAccount());
     final String targetAccount = account(pd.targetAccount());
     pw.format("%s pad %s %s", date(pd.date()), sourceAccount, targetAccount);
     printDirective(pw, pd);
   }
 
-  public void print(PrintWriter pw, EventDirective ed) {
+  private void print(PrintWriter pw, EventDirective ed) {
     pw.format("%s event \"%s\" \"%s\"", date(ed.date()), ed.type(), ed.description());
     printDirective(pw, ed);
   }
@@ -290,7 +383,7 @@ public class BeancountPrinter {
     pw.print(date(ld));
   }
 
-  public void print(PrintWriter pw, OpenDirective od) {
+  private void print(PrintWriter pw, OpenDirective od) {
     print(pw, od.date());
     pw.print(" open ");
     print(pw, od.account());
@@ -302,14 +395,14 @@ public class BeancountPrinter {
     printDirective(pw, od);
   }
 
-  public void print(PrintWriter pw, CloseDirective cd) {
+  private void print(PrintWriter pw, CloseDirective cd) {
     print(pw, cd.date());
     pw.print(" close ");
     print(pw, cd.account());
     printDirective(pw, cd);
   }
 
-  public void print(PrintWriter pw, PriceDirective pd) {
+  private void print(PrintWriter pw, PriceDirective pd) {
     final String commodity = commodity(pd.commodity());
     final String price = arithmeticExpression(pd.price().expression());
     final String otherCommodity = commodity(pd.price().commodity());
@@ -325,7 +418,7 @@ public class BeancountPrinter {
     printDirective(pw, pd);
   }
 
-  public void print(PrintWriter pw, TransactionDirective td) {
+  private void print(PrintWriter pw, TransactionDirective td) {
     pw.print(date(td.date()));
     space(pw);
     print(pw, td.flag());
@@ -362,33 +455,37 @@ public class BeancountPrinter {
     }
   }
 
-  public <T> void loop(Collection<T> collection, Consumer<T> action, Runnable it) {
-    loop(collection, null, action, it);
+  private <T> void loop(
+      Collection<T> collection, Consumer<T> onItemInLoop, Runnable afterEveryLoopBeforeLast) {
+    loop(collection, null, onItemInLoop, afterEveryLoopBeforeLast);
   }
 
-  public <T> void loop(
-      Collection<T> collection, Runnable beforeIfExists, Consumer<T> action, Runnable it) {
+  private <T> void loop(
+      Collection<T> collection,
+      Runnable runBeforeIfNotEmpty,
+      Consumer<T> onItemInLoop,
+      Runnable afterEveryLoopBeforeLast) {
     if (collection == null || collection.isEmpty()) {
       return;
     }
-    if (beforeIfExists != null) {
-      beforeIfExists.run();
+    if (runBeforeIfNotEmpty != null) {
+      runBeforeIfNotEmpty.run();
     }
     int size = collection.size();
     int i = 0;
     for (T t : collection) {
-      action.accept(t);
+      onItemInLoop.accept(t);
       if (++i < size) {
-        it.run();
+        afterEveryLoopBeforeLast.run();
       }
     }
   }
 
-  public void print(PrintWriter pw, Posting p) {
+  private void print(PrintWriter pw, Posting p) {
     if (p == null) {
       return; // TODO, this is a comment
     }
-    final String account = account(p.account());
+    final String account = p.account() == null ? "" : account(p.account());
     final ArithmeticExpression ae = p.amountExpression();
     final String num = ae == null ? "" : arithmeticExpression(ae);
     final Commodity c = p.commodity();
@@ -401,7 +498,8 @@ public class BeancountPrinter {
     if (num.isEmpty() && commodity.isEmpty()) {
       pw.print(account);
     } else {
-      final int col = currencyColumn - account.length() - currentDent - 1 /* " " */ - 2 - comp;
+      final int col =
+          currencyColumn - account.length() - indentationSequence.length() - 1 /* " " */ - 2 - comp;
       final String format = "%s %" + Math.max(col, 1) + "s %s";
       pw.format(format, account, num, commodity);
     }
@@ -415,10 +513,17 @@ public class BeancountPrinter {
       space(pw);
       print(pw, pa);
     }
+    final Comment comment = p.comment();
+    if (comment != null) {
+      if (p.account() != null) {
+        space(pw);
+      }
+      print(pw, comment);
+    }
     print(pw, this::nl, p.metadata());
   }
 
-  public void print(PrintWriter pw, PriceAnnotation pa) {
+  private void print(PrintWriter pw, PriceAnnotation pa) {
     if (pa.totalCost()) {
       pw.print("@@");
     } else {
@@ -490,17 +595,17 @@ public class BeancountPrinter {
     pw.print(flag.flag());
   }
 
-  public void print(PrintWriter pw, Tag tag) {
+  private void print(PrintWriter pw, Tag tag) {
     pw.print('#');
     pw.print(tag.tag());
   }
 
-  public void print(PrintWriter pw, Link link) {
+  private void print(PrintWriter pw, Link link) {
     pw.print('^');
     pw.print(link.link());
   }
 
-  public void print(
+  private void print(
       PrintWriter pw, Consumer<PrintWriter> beforeIfPresent, Collection<TagOrLink> tagsAndLinks) {
     if (!tagsAndLinks.isEmpty()) {
       beforeIfPresent.accept(pw);
@@ -508,7 +613,7 @@ public class BeancountPrinter {
     print(pw, tagsAndLinks);
   }
 
-  public void print(PrintWriter pw, Collection<TagOrLink> tagsAndLinks) {
+  private void print(PrintWriter pw, Collection<TagOrLink> tagsAndLinks) {
     if (tagsAndLinks.isEmpty()) {
       return;
     }
@@ -525,23 +630,24 @@ public class BeancountPrinter {
   }
 
   private void print(PrintWriter pw, Metadata m, Consumer<PrintWriter> afterIfPresent) {
-    print(pw, m);
-    if (!m.metadata().isEmpty()) {
-      afterIfPresent.accept(pw);
-    }
+    print(pw, m, null, afterIfPresent);
   }
 
   private void print(PrintWriter pw, Consumer<PrintWriter> beforeIfPresent, Metadata m) {
-    if (!m.metadata().isEmpty()) {
-      beforeIfPresent.accept(pw);
-    }
-    print(pw, m);
+    print(pw, m, beforeIfPresent, null);
   }
 
-  private void print(PrintWriter pw, Metadata m) {
+  private void print(
+      PrintWriter pw,
+      Metadata m,
+      @Nullable Consumer<PrintWriter> beforeIfPresent,
+      @Nullable Consumer<PrintWriter> afterIfPresent) {
     final List<MetadataLine> metadata = m.metadata();
     if (metadata.isEmpty()) {
       return;
+    }
+    if (beforeIfPresent != null) {
+      beforeIfPresent.accept(pw);
     }
     indent();
     dent(pw);
@@ -559,9 +665,8 @@ public class BeancountPrinter {
             print(pw, tv);
           } else if (l instanceof LinkValue lv) {
             print(pw, lv);
-          } else if (l == null) {
-            // TODO, Currently a comment; do nothing
-            pw.print(';');
+          } else if (l instanceof Comment c) {
+            print(pw, c);
           } else {
             Assert.shouldNeverHappen();
           }
@@ -571,6 +676,14 @@ public class BeancountPrinter {
           dent(pw);
         });
     dedent();
+    if (afterIfPresent != null) {
+      afterIfPresent.accept(pw);
+    }
+  }
+
+  private void print(PrintWriter pw, Comment comment) {
+    pw.write(';');
+    pw.write(comment.comment());
   }
 
   private String arithmeticExpression(ArithmeticExpression ae) {
@@ -599,9 +712,8 @@ public class BeancountPrinter {
           + " / "
           + arithmeticExpression(de.rightExpression());
     } else {
-      Assert.shouldNeverHappen();
+      throw new BeancountInvalidStateException();
     }
-    return null;
   }
 
   private void print(PrintWriter pw, MetadataKey mk) {

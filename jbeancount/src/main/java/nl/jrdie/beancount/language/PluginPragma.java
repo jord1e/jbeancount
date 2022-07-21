@@ -10,8 +10,8 @@ public final class PluginPragma extends AbstractPragmaNode<PluginPragma, PluginP
   private final String name;
   private final String config;
 
-  private PluginPragma(SourceLocation sourceLocation, String name, String config) {
-    super(sourceLocation);
+  private PluginPragma(SourceLocation sourceLocation, String name, String config, Comment comment) {
+    super(sourceLocation, comment);
     this.name = Objects.requireNonNull(name, "name");
     this.config = config;
   }
@@ -35,7 +35,7 @@ public final class PluginPragma extends AbstractPragmaNode<PluginPragma, PluginP
 
   @Override
   public PluginPragma transform(Consumer<Builder> builderConsumer) {
-    Builder b = new Builder(sourceLocation(), name, config);
+    Builder b = new Builder(sourceLocation(), name, config, comment());
     builderConsumer.accept(b);
     return b.build();
   }
@@ -46,15 +46,15 @@ public final class PluginPragma extends AbstractPragmaNode<PluginPragma, PluginP
 
     private Builder() {}
 
-    private Builder(SourceLocation sourceLocation, String name, String config) {
-      super(sourceLocation);
+    private Builder(SourceLocation sourceLocation, String name, String config, Comment comment) {
+      super(sourceLocation, comment);
       this.name = name;
       this.config = config;
     }
 
     @Override
     public PluginPragma build() {
-      return new PluginPragma(sourceLocation(), name, config);
+      return new PluginPragma(sourceLocation(), name, config, comment());
     }
 
     public String name() {

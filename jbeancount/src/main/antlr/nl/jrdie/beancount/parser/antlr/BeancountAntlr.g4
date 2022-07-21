@@ -26,9 +26,9 @@ public Token nextToken() {
 
 journal : declarations? EOF;
 
-declarations : (declaration | COMMENT | EOL)+;
+declarations : decs+=declaration+;
 
-declaration : directive | pragma;
+declaration : d=directive | p=pragma | c=COMMENT | e=EOL;
 
 directive
  : transaction
@@ -57,16 +57,16 @@ pragma
 
 // Pragmas
 
-pushtag : PUSHTAG TAG EOL;
-poptag : POPTAG TAG EOL;
+pushtag : PUSHTAG TAG c=COMMENT? EOL;
+poptag : POPTAG TAG c=COMMENT? EOL;
 //pushmeta : POPTAG KEY COLON meta_value EOL;
 //popmeta : POPMETA KEY COLON EOL;
-option: OPTION name=STRING value=STRING EOL;
+option: OPTION name=STRING value=STRING c=COMMENT? EOL;
 //option : option_unary | option_binary;
 //option_unary : OPTIONS STRING EOL;
 //option_binary : OPTION STRING STRING EOL;
-include : INCLUDE filename=STRING EOL;
-plugin : PLUGIN name=STRING config=STRING? EOL;
+include : INCLUDE filename=STRING c=COMMENT? EOL;
+plugin : PLUGIN name=STRING config=STRING? c=COMMENT? EOL;
 
 // Directives
 
@@ -75,19 +75,19 @@ transaction
  | tl=transactionLine INDENT m=metadata pl=postingList DEDENT
  ;
 
-transactionLine: date=DATE flag=txn pn=payeeNarration? tagsAndLinks COMMENT? EOL;
+transactionLine: date=DATE flag=txn pn=payeeNarration? tagsAndLinks c=COMMENT? EOL;
 
-price : date=DATE PRICE c=CURRENCY a=amount tagsAndLinks EOL m=indentedMetadata;
-balance : date=DATE BALANCE account amountWithTolerance tagsAndLinks COMMENT? EOL m=indentedMetadata;
-open : date=DATE OPEN a=account cl=commodityList? bm=bookingMethod? tagsAndLinks EOL m=indentedMetadata;
-close : date=DATE CLOSE a=account tagsAndLinks EOL m=indentedMetadata;
-commodity : date=DATE COMMODITY c=CURRENCY tagsAndLinks EOL m=indentedMetadata;
-pad : date=DATE PAD sourceAccount=account targetAccount=account tagsAndLinks EOL m=indentedMetadata;
-document : date=DATE DOCUMENT a=account filename=STRING tagsAndLinks EOL m=indentedMetadata;
-note : date=DATE NOTE account noteComment=STRING tagsAndLinks EOL m=indentedMetadata;
-event : date=DATE EVENT type=STRING description=STRING tagsAndLinks EOL m=indentedMetadata;
-query : date=DATE QUERY name=STRING sql=STRING tagsAndLinks EOL m=indentedMetadata;
-custom : date=DATE CUSTOM name=STRING mvl=customValueList tagsAndLinks EOL m=indentedMetadata;
+price : date=DATE PRICE c=CURRENCY a=amount tagsAndLinks comment=COMMENT? EOL m=indentedMetadata;
+balance : date=DATE BALANCE account amountWithTolerance tagsAndLinks c=COMMENT? EOL m=indentedMetadata;
+open : date=DATE OPEN a=account cl=commodityList? bm=bookingMethod? tagsAndLinks c=COMMENT? EOL m=indentedMetadata;
+close : date=DATE CLOSE a=account tagsAndLinks c=COMMENT? EOL m=indentedMetadata;
+commodity : date=DATE COMMODITY c=CURRENCY tagsAndLinks comment=COMMENT? EOL m=indentedMetadata;
+pad : date=DATE PAD sourceAccount=account targetAccount=account tagsAndLinks c=COMMENT? EOL m=indentedMetadata;
+document : date=DATE DOCUMENT a=account filename=STRING tagsAndLinks c=COMMENT? EOL m=indentedMetadata;
+note : date=DATE NOTE account noteComment=STRING tagsAndLinks c=COMMENT? EOL m=indentedMetadata;
+event : date=DATE EVENT type=STRING description=STRING tagsAndLinks c=COMMENT? EOL m=indentedMetadata;
+query : date=DATE QUERY name=STRING sql=STRING tagsAndLinks c=COMMENT? EOL m=indentedMetadata;
+custom : date=DATE CUSTOM name=STRING mvl=customValueList tagsAndLinks c=COMMENT? EOL m=indentedMetadata;
 
 // Metadata
 
@@ -174,11 +174,11 @@ postingList : pm+=postingWithMetadata+;
 postingWithMetadata : p=posting m=indentedMetadata;
 
 posting
- : flag=optFlag a=account e=expr? c=CURRENCY? cs=costSpec? COMMENT? EOL
- | flag=optFlag a=account e=expr? c=CURRENCY? cs=costSpec? at=AT pa=priceAnnotation COMMENT? EOL
- | flag=optFlag a=account e=expr? c=CURRENCY? cs=costSpec? atat=ATAT pa=priceAnnotation COMMENT? EOL
- | flag=optFlag a=account COMMENT? EOL
- | independentComment=COMMENT EOL
+ : flag=optFlag a=account e=expr? c=CURRENCY? cs=costSpec? comment=COMMENT? EOL
+ | flag=optFlag a=account e=expr? c=CURRENCY? cs=costSpec? at=AT pa=priceAnnotation comment=COMMENT? EOL
+ | flag=optFlag a=account e=expr? c=CURRENCY? cs=costSpec? atat=ATAT pa=priceAnnotation comment=COMMENT? EOL
+ | flag=optFlag a=account c=COMMENT? EOL
+ | comment=COMMENT EOL
  ;
 
 priceAnnotation : e=expr? c=CURRENCY?;

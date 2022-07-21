@@ -6,10 +6,10 @@ import java.util.function.Consumer;
 import nl.jrdie.beancount.language.tools.NodeVisitor;
 
 // TODO - This is only used for double(+) consecutive newlines - should it really be here?
-public final class EolNode extends AbstractNode<EolNode, EolNode.Builder>
-    implements JournalDeclaration<EolNode, EolNode.Builder> {
+public final class Eol extends AbstractNode<Eol, Eol.Builder>
+    implements JournalDeclaration<Eol, Eol.Builder> {
 
-  private EolNode(SourceLocation sourceLocation) {
+  private Eol(SourceLocation sourceLocation) {
     super(sourceLocation);
   }
 
@@ -19,17 +19,17 @@ public final class EolNode extends AbstractNode<EolNode, EolNode.Builder>
   }
 
   @Override
-  public EolNode transform(Consumer<Builder> builderConsumer) {
+  public Eol transform(Consumer<Builder> builderConsumer) {
     final Builder b = new Builder(sourceLocation());
     builderConsumer.accept(b);
     return b.build();
   }
 
-  public static Builder newEolNode() {
+  public static Builder newEol() {
     return new Builder();
   }
 
-  public static final class Builder extends AbstractNode.Builder<EolNode, Builder> {
+  public static final class Builder extends AbstractNode.Builder<Eol, Builder> {
     private Builder() {}
 
     private Builder(SourceLocation sourceLocation) {
@@ -37,8 +37,8 @@ public final class EolNode extends AbstractNode<EolNode, EolNode.Builder>
     }
 
     @Override
-    public EolNode build() {
-      return new EolNode(sourceLocation());
+    public Eol build() {
+      return new Eol(sourceLocation());
     }
   }
 }

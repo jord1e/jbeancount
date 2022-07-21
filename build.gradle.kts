@@ -17,7 +17,10 @@ allprojects {
 subprojects {
     apply<JavaPlugin>()
     apply<SpotlessPlugin>()
-
+    dependencies {
+        val compileOnly by configurations
+        compileOnly("org.jetbrains:annotations:23.0.0")
+    }
     configure<JavaPluginExtension>() {
         toolchain {
             languageVersion.set(JavaLanguageVersion.of(17))

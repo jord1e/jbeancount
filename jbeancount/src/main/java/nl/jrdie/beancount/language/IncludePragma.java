@@ -10,8 +10,8 @@ public final class IncludePragma extends AbstractPragmaNode<IncludePragma, Inclu
   private final String filename;
   private final Journal journal;
 
-  private IncludePragma(SourceLocation sourceLocation, String filename, Journal journal) {
-    super(sourceLocation);
+  private IncludePragma(SourceLocation sourceLocation, String filename, Journal journal, Comment comment) {
+    super(sourceLocation, comment);
     this.filename = Objects.requireNonNull(filename, "filename");
     this.journal = journal;
   }
@@ -31,7 +31,7 @@ public final class IncludePragma extends AbstractPragmaNode<IncludePragma, Inclu
 
   @Override
   public IncludePragma transform(Consumer<Builder> builderConsumer) {
-    Builder b = new Builder(sourceLocation(), filename, journal);
+    Builder b = new Builder(sourceLocation(), filename, journal, comment());
     builderConsumer.accept(b);
     return b.build();
   }
@@ -46,15 +46,15 @@ public final class IncludePragma extends AbstractPragmaNode<IncludePragma, Inclu
 
     private Builder() {}
 
-    private Builder(SourceLocation sourceLocation, String filename, Journal journal) {
-      super(sourceLocation);
+    private Builder(SourceLocation sourceLocation, String filename, Journal journal, Comment comment) {
+      super(sourceLocation, comment);
       this.filename = filename;
       this.journal = journal;
     }
 
     @Override
     public IncludePragma build() {
-      return new IncludePragma(sourceLocation(), filename, journal);
+      return new IncludePragma(sourceLocation(), filename, journal, comment());
     }
 
     public String filename() {

@@ -19,8 +19,9 @@ public final class DocumentDirective
       List<TagOrLink> tagsAndLinks,
       String filename,
       Account account,
-      Metadata metadata) {
-    super(sourceLocation, date, tagsAndLinks, metadata);
+      Metadata metadata,
+      Comment comment) {
+    super(sourceLocation, date, tagsAndLinks, metadata, comment);
     this.filename = Objects.requireNonNull(filename, "filename");
     this.account = Objects.requireNonNull(account, "account");
   }
@@ -45,7 +46,8 @@ public final class DocumentDirective
   @Override
   public DocumentDirective transform(Consumer<Builder> builderConsumer) {
     final Builder b =
-        new Builder(sourceLocation(), date(), tagsAndLinks(), metadata(), filename, account);
+        new Builder(
+            sourceLocation(), date(), tagsAndLinks(), metadata(), filename, account, comment());
     builderConsumer.accept(b);
     return b.build();
   }
@@ -63,15 +65,16 @@ public final class DocumentDirective
         List<TagOrLink> tagsAndLinks,
         Metadata metadata,
         String filename,
-        Account account) {
-      super(sourceLocation, date, tagsAndLinks, metadata);
+        Account account,
+        Comment comment) {
+      super(sourceLocation, date, tagsAndLinks, metadata, comment);
       this.filename = filename;
       this.account = account;
     }
 
     public DocumentDirective build() {
       return new DocumentDirective(
-          sourceLocation(), date(), tagsAndLinks(), filename, account, metadata());
+          sourceLocation(), date(), tagsAndLinks(), filename, account, metadata(), comment());
     }
 
     public String filename() {

@@ -3,7 +3,6 @@ package nl.jrdie.beancount.parser;
 import static java.time.temporal.ChronoField.DAY_OF_MONTH;
 import static java.time.temporal.ChronoField.MONTH_OF_YEAR;
 import static java.time.temporal.ChronoField.YEAR;
-import static nl.jrdie.beancount.parser.AntlrHelper.createSourceLocation;
 import static nl.jrdie.beancount.util.ImmutableKit.emptyList;
 import static nl.jrdie.beancount.util.ImmutableKit.map;
 
@@ -16,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
+import nl.jrdie.beancount.BeancountInvalidStateException;
 import nl.jrdie.beancount.language.Account;
 import nl.jrdie.beancount.language.AdditionExpression;
 import nl.jrdie.beancount.language.Amount;
@@ -38,7 +37,7 @@ import nl.jrdie.beancount.language.DateValue;
 import nl.jrdie.beancount.language.DirectiveNode;
 import nl.jrdie.beancount.language.DivisionExpression;
 import nl.jrdie.beancount.language.DocumentDirective;
-import nl.jrdie.beancount.language.EolNode;
+import nl.jrdie.beancount.language.Eol;
 import nl.jrdie.beancount.language.EventDirective;
 import nl.jrdie.beancount.language.Flag;
 import nl.jrdie.beancount.language.IncludePragma;
@@ -68,6 +67,7 @@ import nl.jrdie.beancount.language.PriceDirective;
 import nl.jrdie.beancount.language.PushTagPragma;
 import nl.jrdie.beancount.language.QueryDirective;
 import nl.jrdie.beancount.language.ScalarValue;
+import nl.jrdie.beancount.language.SourceLocation;
 import nl.jrdie.beancount.language.StringValue;
 import nl.jrdie.beancount.language.SubtractionExpression;
 import nl.jrdie.beancount.language.SymbolFlag;
@@ -87,46 +87,51 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 @SuppressWarnings({"unused", "SpellCheckingInspection"})
 public class BeancountAntlrToLanguage {
 
-  private final CommonTokenStream tokenStream;
+  private final String sourceName;
 
-  public BeancountAntlrToLanguage(CommonTokenStream tokenStream) {
-    this.tokenStream = Objects.requireNonNull(tokenStream, "tokenStream");
+  public BeancountAntlrToLanguage(CommonTokenStream tokenStream, String sourceName) {
+    this.sourceName = sourceName;
+  }
+
+  private SourceLocation getSourceLocation(Token token) {
+    return AntlrHelper.createSourceLocation(token, sourceName);
   }
 
   public Journal createJournal(BeancountAntlrParser.JournalContext ctx) {
     Journal.Builder journal = Journal.newJournal();
-    journal.sourceLocation(createSourceLocation(ctx.start));
+    journal.sourceLocation(getSourceLocation(ctx.start));
     journal.declarations(createDeclarations(ctx.declarations()));
     return journal.build();
   }
 
   public List<JournalDeclaration<?, ?>> createDeclarations(
       BeancountAntlrParser.DeclarationsContext ctx) {
-    if (ctx.declaration() != null) {
-      return map(ctx.declaration(), this::createDeclaration);
+    if (ctx.decs != null && !ctx.decs.isEmpty()) {
+      return map(ctx.decs, this::createDeclaration);
     }
     return ImmutableKit.emptyList();
   }
 
   public JournalDeclaration<?, ?> createDeclaration(BeancountAntlrParser.DeclarationContext ctx) {
-    if (ctx.directive() != null) {
-      return createDirective(ctx.directive());
-    } else if (ctx.pragma() != null) {
-      return createPragma(ctx.pragma());
+    if (ctx.d != null) {
+      return createDirective(ctx.d);
+    } else if (ctx.p != null) {
+      return createPragma(ctx.p);
+    } else if (ctx.c != null) {
+      return createComment(ctx.c);
+    } else if (ctx.e != null) {
+      return createEol(ctx.e);
     }
-    //    else if (ctx.eol != null) {
-    //      return createEol(ctx.eol);
-    //    }
     Assert.shouldNeverHappen();
     return null;
   }
 
-  public EolNode createEol(Token token) {
+  public Eol createEol(Token token) {
     if (token.getType() != BeancountAntlrParser.EOL) {
       Assert.shouldNeverHappen();
       return null;
     }
-    return EolNode.newEolNode().sourceLocation(createSourceLocation(token)).build();
+    return Eol.newEol().sourceLocation(getSourceLocation(token)).build();
   }
 
   public DirectiveNode<?, ?> createDirective(BeancountAntlrParser.DirectiveContext ctx) {
@@ -177,8 +182,6 @@ public class BeancountAntlrToLanguage {
       BeancountAntlrParser.TransactionContext ctx) {
     TransactionDirective.Builder txn = TransactionDirective.newTransactionDirective();
     BeancountAntlrParser.TransactionLineContext tl = ctx.tl;
-    txn.date(parseDateToken(tl.date));
-    txn.sourceLocation(createSourceLocation(ctx.start));
     if (tl.pn != null) {
       BeancountAntlrParser.PayeeNarrationContext pn = tl.pn;
       if (pn.narration != null) {
@@ -188,10 +191,15 @@ public class BeancountAntlrToLanguage {
         txn.payee(parseStringToken(pn.payee));
       }
     }
-    txn.flag(createFlag(tl.flag));
-    txn.tagsAndLinks(createTagsAndLinks(tl.tagsAndLinks()));
     txn.postings(createPostingList(ctx.pl));
+    txn.flag(createFlag(tl.flag));
+    txn.date(parseDateToken(tl.date));
+    txn.tagsAndLinks(createTagsAndLinks(tl.tagsAndLinks()));
+    txn.sourceLocation(getSourceLocation(ctx.start));
     txn.metadata(createMetadata(ctx.m));
+    if (tl.c != null) {
+      txn.comment(createComment(tl.c));
+    }
     return txn.build();
   }
 
@@ -202,13 +210,14 @@ public class BeancountAntlrToLanguage {
   public Posting createPosting(BeancountAntlrParser.PostingWithMetadataContext ctx) {
     BeancountAntlrParser.PostingContext pctx = ctx.p;
     Posting.Builder posting = Posting.newPosting();
-    if (pctx.independentComment != null) {
-      // TODO Figure this out
-      return null;
-    }
+    posting.sourceLocation(getSourceLocation(ctx.start));
     posting.metadata(createMetadata(ctx.m));
-    posting.account(createAccount(pctx.a));
-    posting.flag(createFlag(pctx.flag));
+    // This if-statement is only neccesairy because of the individual comment case.
+    //  Maybe it should be revised later...
+    if (pctx.a != null) {
+      posting.account(createAccount(pctx.a));
+      posting.flag(createFlag(pctx.flag));
+    }
     if (pctx.e != null) {
       posting.amountExpression(createExpression(pctx.e));
     }
@@ -217,6 +226,9 @@ public class BeancountAntlrToLanguage {
     }
     if (pctx.cs != null) {
       posting.costSpec(createCostSpec(pctx.cs));
+    }
+    if (pctx.comment != null) {
+      posting.comment(createComment(pctx.comment));
     }
     if (pctx.pa != null) {
       boolean totalCost = pctx.atat != null;
@@ -244,11 +256,14 @@ public class BeancountAntlrToLanguage {
   public PriceDirective createPriceDirective(BeancountAntlrParser.PriceContext ctx) {
     PriceDirective.Builder price = PriceDirective.newPriceDirective();
     price.price(createAmount(ctx.a));
-    price.tagsAndLinks(createTagsAndLinks(ctx.tagsAndLinks()));
-    price.date(parseDateToken(ctx.date));
     price.commodity(createCommodity(ctx.c));
-    price.sourceLocation(createSourceLocation(ctx.start));
+    price.date(parseDateToken(ctx.date));
+    price.tagsAndLinks(createTagsAndLinks(ctx.tagsAndLinks()));
+    price.sourceLocation(getSourceLocation(ctx.start));
     price.metadata(createMetadata(ctx.m));
+    if (ctx.comment != null) {
+      price.comment(createComment(ctx.comment));
+    }
     return price.build();
   }
 
@@ -256,24 +271,30 @@ public class BeancountAntlrToLanguage {
     BalanceDirective.Builder balance = BalanceDirective.newBalanceDirective();
     balance.amount(createAmountWithTolerance(ctx.amountWithTolerance()));
     balance.account(createAccount(ctx.account()));
-    balance.sourceLocation(createSourceLocation(ctx.start));
-    balance.tagsAndLinks(createTagsAndLinks(ctx.tagsAndLinks()));
     balance.date(parseDateToken(ctx.date));
+    balance.tagsAndLinks(createTagsAndLinks(ctx.tagsAndLinks()));
+    balance.sourceLocation(getSourceLocation(ctx.start));
     balance.metadata(createMetadata(ctx.m));
+    if (ctx.c != null) {
+      balance.comment(createComment(ctx.c));
+    }
     return balance.build();
   }
 
   public OpenDirective createOpenDirective(BeancountAntlrParser.OpenContext ctx) {
     OpenDirective.Builder open = OpenDirective.newOpenDirective();
-    open.date(parseDateToken(ctx.date));
     open.account(createAccount(ctx.a));
     open.commodities(createCommodityList(ctx.cl));
-    open.tagsAndLinks(createTagsAndLinks(ctx.tagsAndLinks()));
     if (ctx.bm != null) {
       open.bookingMethod(createBookingMethod(ctx.bm));
     }
-    open.sourceLocation(createSourceLocation(ctx.start));
+    open.date(parseDateToken(ctx.date));
+    open.tagsAndLinks(createTagsAndLinks(ctx.tagsAndLinks()));
+    open.sourceLocation(getSourceLocation(ctx.start));
     open.metadata(createMetadata(ctx.m));
+    if (ctx.c != null) {
+      open.comment(createComment(ctx.c));
+    }
     return open.build();
   }
 
@@ -308,18 +329,24 @@ public class BeancountAntlrToLanguage {
     close.account(createAccount(ctx.a));
     close.date(parseDateToken(ctx.date));
     close.tagsAndLinks(createTagsAndLinks(ctx.tagsAndLinks()));
-    close.sourceLocation(createSourceLocation(ctx.start));
+    close.sourceLocation(getSourceLocation(ctx.start));
     close.metadata(createMetadata(ctx.m));
+    if (ctx.c != null) {
+      close.comment(createComment(ctx.c));
+    }
     return close.build();
   }
 
   public CommodityDirective createCommodityDirective(BeancountAntlrParser.CommodityContext ctx) {
     CommodityDirective.Builder commodity = CommodityDirective.newCommodityDirective();
-    commodity.date(parseDateToken(ctx.date));
     commodity.commodity(createCommodity(ctx.c));
+    commodity.date(parseDateToken(ctx.date));
     commodity.tagsAndLinks(createTagsAndLinks(ctx.tagsAndLinks()));
-    commodity.sourceLocation(createSourceLocation(ctx.start));
+    commodity.sourceLocation(getSourceLocation(ctx.start));
     commodity.metadata(createMetadata(ctx.m));
+    if (ctx.comment != null) {
+      commodity.comment(createComment(ctx.comment));
+    }
     return commodity.build();
   }
 
@@ -327,21 +354,27 @@ public class BeancountAntlrToLanguage {
     PadDirective.Builder pad = PadDirective.newPadDirective();
     pad.sourceAccount(createAccount(ctx.sourceAccount));
     pad.targetAccount(createAccount(ctx.targetAccount));
-    pad.tagsAndLinks(createTagsAndLinks(ctx.tagsAndLinks()));
-    pad.sourceLocation(createSourceLocation(ctx.start));
     pad.date(parseDateToken(ctx.date));
+    pad.tagsAndLinks(createTagsAndLinks(ctx.tagsAndLinks()));
+    pad.sourceLocation(getSourceLocation(ctx.start));
     pad.metadata(createMetadata(ctx.m));
+    if (ctx.c != null) {
+      pad.comment(createComment(ctx.c));
+    }
     return pad.build();
   }
 
   public DocumentDirective createDocumentDirective(BeancountAntlrParser.DocumentContext ctx) {
     DocumentDirective.Builder document = DocumentDirective.newDocumentDirective();
     document.filename(parseStringToken(ctx.filename));
-    document.sourceLocation(createSourceLocation(ctx.start));
-    document.date(parseDateToken(ctx.date));
     document.account(createAccount(ctx.a));
+    document.date(parseDateToken(ctx.date));
     document.tagsAndLinks(createTagsAndLinks(ctx.tagsAndLinks()));
+    document.sourceLocation(getSourceLocation(ctx.start));
     document.metadata(createMetadata(ctx.m));
+    if (ctx.c != null) {
+      document.comment(createComment(ctx.c));
+    }
     return document.build();
   }
 
@@ -351,45 +384,56 @@ public class BeancountAntlrToLanguage {
 
   public NoteDirective createNoteDirective(BeancountAntlrParser.NoteContext ctx) {
     NoteDirective.Builder note = NoteDirective.newNoteDirective();
-    note.date(parseDateToken(ctx.date));
-    note.comment(parseStringToken(ctx.noteComment));
+    note.note(parseStringToken(ctx.noteComment));
     note.account(createAccount(ctx.account()));
+    note.date(parseDateToken(ctx.date));
     note.tagsAndLinks(createTagsAndLinks(ctx.tagsAndLinks()));
-    note.sourceLocation(createSourceLocation(ctx.start));
+    note.sourceLocation(getSourceLocation(ctx.start));
     note.metadata(createMetadata(ctx.m));
+    if (ctx.c != null) {
+      note.comment(createComment(ctx.c));
+    }
     return note.build();
   }
 
   public EventDirective createEventDirective(BeancountAntlrParser.EventContext ctx) {
     EventDirective.Builder event = EventDirective.newEventDirective();
-    event.sourceLocation(createSourceLocation(ctx.start));
     event.description(parseStringToken(ctx.description));
     event.type(parseStringToken(ctx.type));
     event.date(parseDateToken(ctx.date));
     event.tagsAndLinks(createTagsAndLinks(ctx.tagsAndLinks()));
-    event.sourceLocation(createSourceLocation(ctx.start));
+    event.sourceLocation(getSourceLocation(ctx.start));
     event.metadata(createMetadata(ctx.m));
+    if (ctx.c != null) {
+      event.comment(createComment(ctx.c));
+    }
     return event.build();
   }
 
   public QueryDirective createQueryDirective(BeancountAntlrParser.QueryContext ctx) {
     QueryDirective.Builder query = QueryDirective.newQueryDirective();
-    query.sourceLocation(createSourceLocation(ctx.start));
-    query.tagsAndLinks(createTagsAndLinks(ctx.tagsAndLinks()));
     query.sql(parseStringToken(ctx.sql));
     query.name(parseStringToken(ctx.name));
     query.date(parseDateToken(ctx.date));
+    query.tagsAndLinks(createTagsAndLinks(ctx.tagsAndLinks()));
+    query.sourceLocation(getSourceLocation(ctx.start));
     query.metadata(createMetadata(ctx.m));
+    if (ctx.c != null) {
+      query.comment(createComment(ctx.c));
+    }
     return query.build();
   }
 
   public CustomDirective createCustomDirective(BeancountAntlrParser.CustomContext ctx) {
     CustomDirective.Builder custom = CustomDirective.newCustomDirective();
-    custom.sourceLocation(createSourceLocation(ctx.start));
     custom.name(parseStringToken(ctx.name));
-    custom.date(parseDateToken(ctx.date));
     custom.values(createScalarValueList(ctx.mvl));
+    custom.date(parseDateToken(ctx.date));
+    custom.sourceLocation(getSourceLocation(ctx.start));
     custom.metadata(createMetadata(ctx.m));
+    if (ctx.c != null) {
+      custom.comment(createComment(ctx.c));
+    }
     return custom.build();
   }
 
@@ -407,16 +451,22 @@ public class BeancountAntlrToLanguage {
 
   public OptionPragma createOptionPragma(BeancountAntlrParser.OptionContext ctx) {
     OptionPragma.Builder option = OptionPragma.newOptionPragma();
-    option.sourceLocation(createSourceLocation(ctx.start));
+    option.sourceLocation(getSourceLocation(ctx.start));
     option.name(parseStringToken(ctx.name));
     option.value(parseStringToken(ctx.value));
+    if (ctx.c != null) {
+      option.comment(createComment(ctx.c));
+    }
     return option.build();
   }
 
   public IncludePragma createIncludePragma(BeancountAntlrParser.IncludeContext ctx) {
     IncludePragma.Builder include = IncludePragma.newIncludePragma();
     include.filename(parseStringToken(ctx.filename));
-    include.sourceLocation(createSourceLocation(ctx.start));
+    include.sourceLocation(getSourceLocation(ctx.start));
+    if (ctx.c != null) {
+      include.comment(createComment(ctx.c));
+    }
     return include.build();
   }
 
@@ -472,7 +522,7 @@ public class BeancountAntlrToLanguage {
     } else if (ctx.t != null) {
       return createTagValue(ctx.t);
     } else if (ctx.c != null) {
-      return null; // TODO Handle this
+      return createComment(ctx.c);
     } else {
       Assert.shouldNeverHappen();
     }
@@ -525,7 +575,10 @@ public class BeancountAntlrToLanguage {
     if (ctx.config != null) {
       plugin.config(parseStringToken(ctx.config));
     }
-    plugin.sourceLocation(createSourceLocation(ctx.start));
+    plugin.sourceLocation(getSourceLocation(ctx.start));
+    if (ctx.c != null) {
+      plugin.comment(createComment(ctx.c));
+    }
     return plugin.build();
   }
 
@@ -792,13 +845,12 @@ public class BeancountAntlrToLanguage {
 
   public Comment createComment(Token commentToken) {
     if (commentToken.getType() != BeancountAntlrParser.COMMENT) {
-      Assert.shouldNeverHappen();
-      return null;
+      throw new BeancountInvalidStateException();
     }
     Comment.Builder comment = Comment.newComment();
     // Remove leading ';', and keep possible ws after the semicolon.
     final String text = commentToken.getText().substring(1);
-    comment.sourceLocation(createSourceLocation(commentToken));
+    comment.sourceLocation(getSourceLocation(commentToken));
     comment.comment(text);
     return comment.build();
   }

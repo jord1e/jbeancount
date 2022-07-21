@@ -17,8 +17,9 @@ public final class CloseDirective
       LocalDate date,
       List<TagOrLink> tagsAndLinks,
       Account account,
-      Metadata metadata) {
-    super(sourceLocation, date, tagsAndLinks, metadata);
+      Metadata metadata,
+      Comment comment) {
+    super(sourceLocation, date, tagsAndLinks, metadata, comment);
     this.account = Objects.requireNonNull(account, "account");
   }
 
@@ -37,7 +38,8 @@ public final class CloseDirective
 
   @Override
   public CloseDirective transform(Consumer<Builder> builderConsumer) {
-    Builder b = new Builder(sourceLocation(), date(), tagsAndLinks(), metadata(), account);
+    Builder b =
+        new Builder(sourceLocation(), date(), tagsAndLinks(), metadata(), account, comment());
     builderConsumer.accept(b);
     return b.build();
   }
@@ -52,14 +54,16 @@ public final class CloseDirective
         LocalDate date,
         List<TagOrLink> tagsAndLinks,
         Metadata metadata,
-        Account account) {
-      super(sourceLocation, date, tagsAndLinks, metadata);
+        Account account,
+        Comment comment) {
+      super(sourceLocation, date, tagsAndLinks, metadata, comment);
       this.account = account;
     }
 
     @Override
     public CloseDirective build() {
-      return new CloseDirective(sourceLocation(), date(), tagsAndLinks(), account, metadata());
+      return new CloseDirective(
+          sourceLocation(), date(), tagsAndLinks(), account, metadata(), comment());
     }
 
     public Account account() {

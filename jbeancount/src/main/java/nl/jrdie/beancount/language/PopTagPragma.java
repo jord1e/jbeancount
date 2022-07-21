@@ -6,8 +6,8 @@ import java.util.function.Consumer;
 import nl.jrdie.beancount.language.tools.NodeVisitor;
 
 public final class PopTagPragma extends AbstractPragmaNode<PopTagPragma, PopTagPragma.Builder> {
-  PopTagPragma(SourceLocation sourceLocation) {
-    super(sourceLocation);
+  PopTagPragma(SourceLocation sourceLocation, Comment comment) {
+    super(sourceLocation, comment);
   }
 
   @Override

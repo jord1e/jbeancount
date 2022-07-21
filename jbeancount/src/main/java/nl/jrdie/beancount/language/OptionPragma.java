@@ -11,8 +11,8 @@ public final class OptionPragma extends AbstractPragmaNode<OptionPragma, OptionP
   private final String name;
   private final String value;
 
-  private OptionPragma(SourceLocation sourceLocation, String name, String value) {
-    super(sourceLocation);
+  private OptionPragma(SourceLocation sourceLocation, String name, String value, Comment comment) {
+    super(sourceLocation, comment);
     this.name = Objects.requireNonNull(name, "name");
     this.value = Objects.requireNonNull(value, "value");
   }
@@ -36,7 +36,7 @@ public final class OptionPragma extends AbstractPragmaNode<OptionPragma, OptionP
 
   @Override
   public OptionPragma transform(Consumer<Builder> builderConsumer) {
-    final Builder b = new Builder(sourceLocation(), name, value);
+    final Builder b = new Builder(sourceLocation(), name, value, comment());
     builderConsumer.accept(b);
     return b.build();
   }
@@ -47,15 +47,15 @@ public final class OptionPragma extends AbstractPragmaNode<OptionPragma, OptionP
 
     private Builder() {}
 
-    private Builder(SourceLocation sourceLocation, String name, String value) {
-      super(sourceLocation);
+    private Builder(SourceLocation sourceLocation, String name, String value, Comment comment) {
+      super(sourceLocation, comment);
       this.name = name;
       this.value = value;
     }
 
     @Override
     public OptionPragma build() {
-      return new OptionPragma(sourceLocation(), name, value);
+      return new OptionPragma(sourceLocation(), name, value, comment());
     }
 
     public String name() {

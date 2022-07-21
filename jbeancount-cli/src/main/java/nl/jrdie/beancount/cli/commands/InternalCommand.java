@@ -5,6 +5,6 @@ import picocli.CommandLine;
 @CommandLine.Command(
     name = "internal",
     description = "Internal commands to debug the utility and library",
-    subcommands = {LexCommand.class, IncludeTreeCommand.class},
+    subcommands = {LexCommand.class},
     scope = CommandLine.ScopeType.INHERIT)
 public class InternalCommand {}

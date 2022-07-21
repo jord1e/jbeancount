@@ -18,8 +18,9 @@ public final class PadDirective extends AbstractDirectiveNode<PadDirective, PadD
       List<TagOrLink> tagsAndLinks,
       Account sourceAccount,
       Account targetAccount,
-      Metadata metadata) {
-    super(sourceLocation, date, tagsAndLinks, metadata);
+      Metadata metadata,
+      Comment comment) {
+    super(sourceLocation, date, tagsAndLinks, metadata, comment);
     this.sourceAccount = Objects.requireNonNull(sourceAccount, "sourceAccount");
     this.targetAccount = Objects.requireNonNull(targetAccount, "targetAccount");
   }
@@ -45,7 +46,13 @@ public final class PadDirective extends AbstractDirectiveNode<PadDirective, PadD
   public PadDirective transform(Consumer<Builder> builderConsumer) {
     final Builder b =
         new Builder(
-            sourceLocation(), date(), tagsAndLinks(), metadata(), sourceAccount, targetAccount);
+            sourceLocation(),
+            date(),
+            tagsAndLinks(),
+            metadata(),
+            sourceAccount,
+            targetAccount,
+            comment());
     builderConsumer.accept(b);
     return b.build();
   }
@@ -62,8 +69,9 @@ public final class PadDirective extends AbstractDirectiveNode<PadDirective, PadD
         List<TagOrLink> tagsAndLinks,
         Metadata metadata,
         Account sourceAccount,
-        Account targetAccount) {
-      super(sourceLocation, date, tagsAndLinks, metadata);
+        Account targetAccount,
+        Comment comment) {
+      super(sourceLocation, date, tagsAndLinks, metadata, comment);
       this.sourceAccount = sourceAccount;
       this.targetAccount = targetAccount;
     }
@@ -71,7 +79,13 @@ public final class PadDirective extends AbstractDirectiveNode<PadDirective, PadD
     @Override
     public PadDirective build() {
       return new PadDirective(
-          sourceLocation(), date(), tagsAndLinks(), sourceAccount, targetAccount, metadata());
+          sourceLocation(),
+          date(),
+          tagsAndLinks(),
+          sourceAccount,
+          targetAccount,
+          metadata(),
+          comment());
     }
 
     public Account sourceAccount() {

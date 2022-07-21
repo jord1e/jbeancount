@@ -19,8 +19,9 @@ public final class BalanceDirective
       List<TagOrLink> tagsAndLinks,
       Account account,
       Amount amount,
-      Metadata metadata) {
-    super(sourceLocation, date, tagsAndLinks, metadata);
+      Metadata metadata,
+      Comment comment) {
+    super(sourceLocation, date, tagsAndLinks, metadata, comment);
     this.account = Objects.requireNonNull(account, "account");
     this.amount = Objects.requireNonNull(amount, "amount");
   }
@@ -45,7 +46,8 @@ public final class BalanceDirective
   @Override
   public BalanceDirective transform(Consumer<Builder> builderConsumer) {
     Builder builder =
-        new Builder(sourceLocation(), date(), tagsAndLinks(), metadata(), account, amount);
+        new Builder(
+            sourceLocation(), date(), tagsAndLinks(), metadata(), account, amount, comment());
     builderConsumer.accept(builder);
     return builder.build();
   }
@@ -65,8 +67,9 @@ public final class BalanceDirective
         List<TagOrLink> tagsAndLinks,
         Metadata metadata,
         Account account,
-        Amount amount) {
-      super(sourceLocation, date, tagsAndLinks, metadata);
+        Amount amount,
+        Comment comment) {
+      super(sourceLocation, date, tagsAndLinks, metadata, comment);
       this.account = account;
       this.amount = amount;
     }
@@ -74,7 +77,7 @@ public final class BalanceDirective
     @Override
     public BalanceDirective build() {
       return new BalanceDirective(
-          sourceLocation(), date(), tagsAndLinks(), account, amount, metadata());
+          sourceLocation(), date(), tagsAndLinks(), account, amount, metadata(), comment());
     }
 
     public Account account() {

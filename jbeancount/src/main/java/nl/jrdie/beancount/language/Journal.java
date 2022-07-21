@@ -2,6 +2,7 @@ package nl.jrdie.beancount.language;
 
 import graphql.util.TraversalControl;
 import graphql.util.TraverserContext;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -16,7 +17,8 @@ public final class Journal extends AbstractNode<Journal, Journal.Builder> {
 
   private Journal(SourceLocation sourceLocation, List<JournalDeclaration<?, ?>> declarations) {
     super(sourceLocation);
-    this.declarations = Objects.requireNonNull(declarations, "declarations");
+    this.declarations =
+        Collections.unmodifiableList(Objects.requireNonNull(declarations, "declarations"));
   }
 
   public List<JournalDeclaration<?, ?>> declarations() {

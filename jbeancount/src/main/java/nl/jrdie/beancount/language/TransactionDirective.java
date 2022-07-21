@@ -23,8 +23,9 @@ public final class TransactionDirective
       String narration,
       Flag flag,
       List<Posting> postings,
-      Metadata metadata) {
-    super(sourceLocation, date, tagsAndLinks, metadata);
+      Metadata metadata,
+      Comment comment) {
+    super(sourceLocation, date, tagsAndLinks, metadata, comment);
     this.payee = payee;
     this.narration = narration;
     this.flag = Objects.requireNonNull(flag, "flag");
@@ -60,7 +61,15 @@ public final class TransactionDirective
   public TransactionDirective transform(Consumer<Builder> builderConsumer) {
     final Builder b =
         new Builder(
-            sourceLocation(), date(), tagsAndLinks(), metadata(), payee, narration, flag, postings);
+            sourceLocation(),
+            date(),
+            tagsAndLinks(),
+            metadata(),
+            payee,
+            narration,
+            flag,
+            postings,
+            comment());
     builderConsumer.accept(b);
     return b.build();
   }
@@ -82,8 +91,9 @@ public final class TransactionDirective
         String payee,
         String narration,
         Flag flag,
-        List<Posting> postings) {
-      super(sourceLocation, date, tagsAndLinks, metadata);
+        List<Posting> postings,
+        Comment comment) {
+      super(sourceLocation, date, tagsAndLinks, metadata, comment);
       this.payee = payee;
       this.narration = narration;
       this.flag = flag;
@@ -93,7 +103,15 @@ public final class TransactionDirective
     @Override
     public TransactionDirective build() {
       return new TransactionDirective(
-          sourceLocation(), date(), tagsAndLinks(), payee, narration, flag, postings, metadata());
+          sourceLocation(),
+          date(),
+          tagsAndLinks(),
+          payee,
+          narration,
+          flag,
+          postings,
+          metadata(),
+          comment());
     }
 
     public String payee() {

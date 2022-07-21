@@ -21,17 +21,17 @@ public class BeancountParser {
   }
 
   public Journal parseJournal(Path path) {
-    return parseJournalImpl(path, CharStreams::fromPath);
+    return parseJournalImpl(path, path.getFileName().toString(), CharStreams::fromPath);
   }
 
   public Journal parseJournal(Reader reader) {
-    return parseJournalImpl(reader, CharStreams::fromReader);
+    return parseJournalImpl(reader, null, CharStreams::fromReader);
   }
 
   public static AtomicLong ns = new AtomicLong(0);
   public static AtomicLong c = new AtomicLong(0);
 
-  private <T> Journal parseJournalImpl(T t, CharStreamFunction<T> func) {
+  private <T> Journal parseJournalImpl(T t, String sourceName, CharStreamFunction<T> func) {
     final CharStream charStream;
     try {
       charStream = func.apply(t);
@@ -46,7 +46,7 @@ public class BeancountParser {
     final nl.jrdie.beancount.parser.antlr.BeancountAntlrParser antlrParser =
         new nl.jrdie.beancount.parser.antlr.BeancountAntlrParser(tokens);
 
-    final BeancountAntlrToLanguage toLanguage = new BeancountAntlrToLanguage(tokens);
+    final BeancountAntlrToLanguage toLanguage = new BeancountAntlrToLanguage(tokens, sourceName);
 
     long a = System.nanoTime();
     final BeancountAntlrParser.JournalContext journalContext = antlrParser.journal();

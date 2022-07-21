@@ -18,8 +18,9 @@ public final class PriceDirective
       List<TagOrLink> tagsAndLinks,
       Commodity commodity,
       Amount price,
-      Metadata metadata) {
-    super(sourceLocation, date, tagsAndLinks, metadata);
+      Metadata metadata,
+      Comment comment) {
+    super(sourceLocation, date, tagsAndLinks, metadata, comment);
     this.commodity = commodity;
     this.price = price;
   }
@@ -44,7 +45,8 @@ public final class PriceDirective
   @Override
   public PriceDirective transform(Consumer<Builder> builderConsumer) {
     final Builder b =
-        new Builder(sourceLocation(), date(), tagsAndLinks(), metadata(), commodity, price);
+        new Builder(
+            sourceLocation(), date(), tagsAndLinks(), metadata(), commodity, price, comment());
     builderConsumer.accept(b);
     return b.build();
   }
@@ -61,8 +63,9 @@ public final class PriceDirective
         List<TagOrLink> tagsAndLinks,
         Metadata metadata,
         Commodity commodity,
-        Amount price) {
-      super(sourceLocation, date, tagsAndLinks, metadata);
+        Amount price,
+        Comment comment) {
+      super(sourceLocation, date, tagsAndLinks, metadata, comment);
       this.commodity = commodity;
       this.price = price;
     }
@@ -70,7 +73,7 @@ public final class PriceDirective
     @Override
     public PriceDirective build() {
       return new PriceDirective(
-          sourceLocation(), date(), tagsAndLinks(), commodity, price, metadata());
+          sourceLocation(), date(), tagsAndLinks(), commodity, price, metadata(), comment());
     }
 
     public Commodity commodity() {

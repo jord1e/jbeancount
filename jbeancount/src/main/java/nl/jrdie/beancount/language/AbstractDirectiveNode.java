@@ -6,11 +6,15 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import org.jetbrains.annotations.Nullable;
 
 abstract sealed class AbstractDirectiveNode<
         T extends Node<T, B>, B extends AbstractDirectiveNode.Builder<T, B>>
     extends AbstractNode<T, B>
-    implements Node<T, B>, DirectiveNode<T, B>, JournalDeclaration<T, B>, LinkAndTagContainer
+    implements Node<T, B>,
+        DirectiveNode<T, B>,
+        JournalDeclaration<T, B>,
+        LinkAndTagContainer
     permits BalanceDirective,
         CloseDirective,
         CommodityDirective,
@@ -27,6 +31,7 @@ abstract sealed class AbstractDirectiveNode<
   private final LocalDate date;
   private final List<TagOrLink> tagsAndLinks;
   private final Metadata metadata;
+  private final Comment comment;
   private Collection<Link> links;
   private Collection<Tag> tags;
 
@@ -34,11 +39,13 @@ abstract sealed class AbstractDirectiveNode<
       SourceLocation sourceLocation,
       LocalDate date,
       List<TagOrLink> tagsAndLinks,
-      Metadata metadata) {
+      Metadata metadata,
+      Comment comment) {
     super(sourceLocation);
     this.date = Objects.requireNonNull(date, "date");
     this.tagsAndLinks = Objects.requireNonNull(tagsAndLinks, "tagsAndLinks");
     this.metadata = Objects.requireNonNull(metadata, "metadata");
+    this.comment = comment;
   }
 
   @Override
@@ -54,6 +61,12 @@ abstract sealed class AbstractDirectiveNode<
   @Override
   public List<TagOrLink> tagsAndLinks() {
     return tagsAndLinks;
+  }
+
+  @Nullable
+  @Override
+  public Comment comment() {
+    return comment;
   }
 
   @Override
@@ -102,6 +115,7 @@ abstract sealed class AbstractDirectiveNode<
     private LocalDate date;
     private List<TagOrLink> tagsAndLinks;
     private Metadata metadata;
+    private Comment comment;
 
     Builder() {}
 
@@ -109,11 +123,13 @@ abstract sealed class AbstractDirectiveNode<
         SourceLocation sourceLocation,
         LocalDate date,
         List<TagOrLink> tagsAndLinks,
-        Metadata metadata) {
+        Metadata metadata,
+        Comment comment) {
       super(sourceLocation);
       this.date = date;
       this.tagsAndLinks = tagsAndLinks;
       this.metadata = metadata;
+      this.comment = comment;
     }
 
     public LocalDate date() {
@@ -140,6 +156,15 @@ abstract sealed class AbstractDirectiveNode<
 
     public Builder<T, B> metadata(Metadata metadata) {
       this.metadata = metadata;
+      return this;
+    }
+
+    public Comment comment() {
+      return comment;
+    }
+
+    public Builder<T, B> comment(Comment comment) {
+      this.comment = comment;
       return this;
     }
   }

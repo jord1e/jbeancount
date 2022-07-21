@@ -19,8 +19,9 @@ public final class QueryDirective
       List<TagOrLink> tagsAndLinks,
       String name,
       String sql,
-      Metadata metadata) {
-    super(sourceLocation, date, tagsAndLinks, metadata);
+      Metadata metadata,
+      Comment comment) {
+    super(sourceLocation, date, tagsAndLinks, metadata, comment);
     this.name = Objects.requireNonNull(name, "name");
     this.sql = Objects.requireNonNull(sql, "sql");
   }
@@ -44,7 +45,8 @@ public final class QueryDirective
 
   @Override
   public QueryDirective transform(Consumer<Builder> builderConsumer) {
-    final Builder b = new Builder(sourceLocation(), date(), tagsAndLinks(), metadata(), name, sql);
+    final Builder b =
+        new Builder(sourceLocation(), date(), tagsAndLinks(), metadata(), name, sql, comment());
     builderConsumer.accept(b);
     return b.build();
   }
@@ -61,15 +63,17 @@ public final class QueryDirective
         List<TagOrLink> tagsAndLinks,
         Metadata metadata,
         String name,
-        String sql) {
-      super(sourceLocation, date, tagsAndLinks, metadata);
+        String sql,
+        Comment comment) {
+      super(sourceLocation, date, tagsAndLinks, metadata, comment);
       this.name = name;
       this.sql = sql;
     }
 
     @Override
     public QueryDirective build() {
-      return new QueryDirective(sourceLocation(), date(), tagsAndLinks(), name, sql, metadata());
+      return new QueryDirective(
+          sourceLocation(), date(), tagsAndLinks(), name, sql, metadata(), comment());
     }
 
     public String name() {

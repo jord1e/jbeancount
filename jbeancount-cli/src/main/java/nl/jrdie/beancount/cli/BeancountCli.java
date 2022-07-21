@@ -1,9 +1,11 @@
 package nl.jrdie.beancount.cli;
 
 import nl.jrdie.beancount.cli.commands.CheckJournal;
-import nl.jrdie.beancount.cli.commands.CombineJournal;
 import nl.jrdie.beancount.cli.commands.FormatJournal;
+import nl.jrdie.beancount.cli.commands.IncludeTreeCommand;
 import nl.jrdie.beancount.cli.commands.InternalCommand;
+import nl.jrdie.beancount.cli.commands.MergeJournal;
+import nl.jrdie.beancount.cli.commands.SortJournal;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
@@ -13,10 +15,12 @@ import picocli.CommandLine.Command;
     version = "jbeancount 0.1",
     description = "Extension utilities for the Beancount plain text accounting tool",
     subcommands = {
-      CombineJournal.class,
+      MergeJournal.class,
       FormatJournal.class,
       CheckJournal.class,
-      InternalCommand.class
+      IncludeTreeCommand.class,
+      InternalCommand.class,
+      SortJournal.class
     },
     scope = CommandLine.ScopeType.INHERIT)
 public final class BeancountCli {

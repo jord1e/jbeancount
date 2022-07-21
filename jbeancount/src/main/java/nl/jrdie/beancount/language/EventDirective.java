@@ -20,8 +20,9 @@ public final class EventDirective
       List<TagOrLink> tagsAndLinks,
       String type,
       String description,
-      Metadata metadata) {
-    super(sourceLocation, date, tagsAndLinks, metadata);
+      Metadata metadata,
+      Comment comment) {
+    super(sourceLocation, date, tagsAndLinks, metadata, comment);
     this.type = Objects.requireNonNull(type, "type");
     this.description = Objects.requireNonNull(description, "description");
   }
@@ -46,7 +47,8 @@ public final class EventDirective
   @Override
   public EventDirective transform(Consumer<Builder> builderConsumer) {
     final Builder b =
-        new Builder(sourceLocation(), date(), tagsAndLinks(), metadata(), type, description);
+        new Builder(
+            sourceLocation(), date(), tagsAndLinks(), metadata(), type, description, comment());
     builderConsumer.accept(b);
     return b.build();
   }
@@ -63,8 +65,9 @@ public final class EventDirective
         List<TagOrLink> tagsAndLinks,
         Metadata metadata,
         String type,
-        String description) {
-      super(sourceLocation, date, tagsAndLinks, metadata);
+        String description,
+        Comment comment) {
+      super(sourceLocation, date, tagsAndLinks, metadata, comment);
       this.type = type;
       this.description = description;
     }
@@ -72,7 +75,7 @@ public final class EventDirective
     @Override
     public EventDirective build() {
       return new EventDirective(
-          sourceLocation(), date(), tagsAndLinks(), type, description, metadata());
+          sourceLocation(), date(), tagsAndLinks(), type, description, metadata(), comment());
     }
 
     public String type() {

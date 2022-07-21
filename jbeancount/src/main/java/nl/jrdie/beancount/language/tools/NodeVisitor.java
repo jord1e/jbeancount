@@ -17,6 +17,7 @@ import nl.jrdie.beancount.language.OpenDirective;
 import nl.jrdie.beancount.language.OptionPragma;
 import nl.jrdie.beancount.language.PadDirective;
 import nl.jrdie.beancount.language.PluginPragma;
+import nl.jrdie.beancount.language.Posting;
 import nl.jrdie.beancount.language.PriceDirective;
 import nl.jrdie.beancount.language.QueryDirective;
 import nl.jrdie.beancount.language.TransactionDirective;
@@ -58,4 +59,6 @@ public interface NodeVisitor {
   TraversalControl visitJournal(Journal journal, TraverserContext<Node<?, ?>> data);
 
   TraversalControl visitComment(Comment comment, TraverserContext<Node<?, ?>> data);
+
+  TraversalControl visitPosting(Posting posting, TraverserContext<Node<?, ?>> data);
 }

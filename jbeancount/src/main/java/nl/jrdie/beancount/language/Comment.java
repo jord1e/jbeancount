@@ -6,12 +6,17 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import nl.jrdie.beancount.language.tools.NodeVisitor;
 
-public final class Comment extends AbstractNode<Comment, Comment.Builder> {
+public final class Comment extends AbstractNode<Comment, Comment.Builder>
+    implements JournalDeclaration<Comment, Comment.Builder>, MetadataLine {
   private final String comment;
 
   private Comment(SourceLocation sourceLocation, String comment) {
     super(sourceLocation);
     this.comment = Objects.requireNonNull(comment, "comment");
+  }
+
+  public String comment() {
+    return comment;
   }
 
   @Override

@@ -20,10 +20,12 @@ public class NodeChildrenContainer {
     this.children.putAll(assertNotNull(children));
   }
 
+  @SuppressWarnings("unchecked")
   public <T extends Node<?, ?>> List<T> getChildren(String key) {
     return (List<T>) children.getOrDefault(key, emptyList());
   }
 
+  @SuppressWarnings("unchecked")
   public <T extends Node<?, ?>> T getChildOrNull(String key) {
     List<? extends Node<?, ?>> result = children.getOrDefault(key, emptyList());
     if (result.size() > 1) {
@@ -84,6 +86,7 @@ public class NodeChildrenContainer {
       return this;
     }
 
+    @SuppressWarnings("unchecked")
     public Builder children(Map<String, ? extends List<? extends Node<?, ?>>> children) {
       this.children.clear();
       this.children.putAll((Map<? extends String, ? extends List<Node<?, ?>>>) children);

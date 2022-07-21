@@ -2,14 +2,16 @@ package nl.jrdie.beancount.language;
 
 public final class SourceLocation {
 
-  public static final SourceLocation EMPTY = new SourceLocation(-1, -1);
+  public static final SourceLocation EMPTY = new SourceLocation(-1, -1, null);
 
   private final int line;
   private final int column;
+  private final String sourceName;
 
-  private SourceLocation(int line, int column) {
+  private SourceLocation(int line, int column, String sourceName) {
     this.line = line;
     this.column = column;
+    this.sourceName = sourceName;
   }
 
   public int line() {
@@ -20,8 +22,12 @@ public final class SourceLocation {
     return column;
   }
 
-  public static SourceLocation of(int line, int column) {
-    return new SourceLocation(line, column);
+  public String sourceName() {
+    return sourceName;
+  }
+
+  public static SourceLocation of(int line, int column, String sourceName) {
+    return new SourceLocation(line, column, sourceName);
   }
 
   @Override
@@ -32,18 +38,24 @@ public final class SourceLocation {
     SourceLocation that = (SourceLocation) o;
 
     if (line != that.line) return false;
-    return column == that.column;
+    if (column != that.column) return false;
+    return sourceName.equals(that.sourceName);
   }
 
   @Override
   public int hashCode() {
     int result = line;
     result = 31 * result + column;
+    result = 31 * result + sourceName.hashCode();
     return result;
   }
 
   @Override
   public String toString() {
-    return "SourceLocation{" + "line=" + line + ", column=" + column + '}';
+    return "SourceLocation{" +
+            "line=" + line +
+            ", column=" + column +
+            ", sourceName='" + sourceName + '\'' +
+            '}';
   }
 }

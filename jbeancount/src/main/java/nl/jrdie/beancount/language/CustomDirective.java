@@ -21,8 +21,9 @@ public final class CustomDirective
       LocalDate date,
       String name,
       List<ScalarValue> values,
-      Metadata metadata) {
-    super(sourceLocation, date, ImmutableKit.emptyList(), metadata);
+      Metadata metadata,
+      Comment comment) {
+    super(sourceLocation, date, ImmutableKit.emptyList(), metadata, comment);
     this.name = Objects.requireNonNull(name, "name");
     this.values = Objects.requireNonNull(values, "values");
   }
@@ -62,7 +63,7 @@ public final class CustomDirective
   @Override
   public CustomDirective transform(Consumer<Builder> builderConsumer) {
     final Builder b =
-        new Builder(sourceLocation(), date(), tagsAndLinks(), metadata(), name, values);
+        new Builder(sourceLocation(), date(), tagsAndLinks(), metadata(), name, values, comment());
     builderConsumer.accept(b);
     return b.build();
   }
@@ -80,15 +81,16 @@ public final class CustomDirective
         List<TagOrLink> tagsAndLinks,
         Metadata metadata,
         String name,
-        List<ScalarValue> values) {
-      super(sourceLocation, date, tagsAndLinks, metadata);
+        List<ScalarValue> values,
+        Comment comment) {
+      super(sourceLocation, date, tagsAndLinks, metadata, comment);
       this.name = name;
       this.values = values;
     }
 
     @Override
     public CustomDirective build() {
-      return new CustomDirective(sourceLocation(), date(), name, values, metadata());
+      return new CustomDirective(sourceLocation(), date(), name, values, metadata(), comment());
     }
 
     public String name() {

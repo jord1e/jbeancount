@@ -17,8 +17,9 @@ public final class CommodityDirective
       LocalDate date,
       List<TagOrLink> tagsAndLinks,
       Commodity commodity,
-      Metadata metadata) {
-    super(sourceLocation, date, tagsAndLinks, metadata);
+      Metadata metadata,
+      Comment comment) {
+    super(sourceLocation, date, tagsAndLinks, metadata, comment);
     this.commodity = Objects.requireNonNull(commodity, "commodity");
   }
 
@@ -37,7 +38,8 @@ public final class CommodityDirective
 
   @Override
   public CommodityDirective transform(Consumer<Builder> builderConsumer) {
-    final Builder b = new Builder(sourceLocation(), date(), tagsAndLinks(), metadata(), commodity);
+    final Builder b =
+        new Builder(sourceLocation(), date(), tagsAndLinks(), metadata(), commodity, comment());
     builderConsumer.accept(b);
     return b.build();
   }
@@ -53,14 +55,15 @@ public final class CommodityDirective
         LocalDate date,
         List<TagOrLink> tagsAndLinks,
         Metadata metadata,
-        Commodity commodity) {
-      super(sourceLocation, date, tagsAndLinks, metadata);
+        Commodity commodity,
+        Comment comment) {
+      super(sourceLocation, date, tagsAndLinks, metadata, comment);
       this.commodity = commodity;
     }
 
     public CommodityDirective build() {
       return new CommodityDirective(
-          sourceLocation(), date(), tagsAndLinks(), commodity, metadata());
+          sourceLocation(), date(), tagsAndLinks(), commodity, metadata(), comment());
     }
 
     public Commodity commodity() {

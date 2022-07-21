@@ -6,8 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import nl.jrdie.beancount.construe.AsyncConstrueStrategy;
+import nl.jrdie.beancount.annotation.Beta;
 import nl.jrdie.beancount.construe.BeancountConstrueStrategy;
+import nl.jrdie.beancount.construe.SyncConstrueStrategy;
 import nl.jrdie.beancount.language.IncludePragma;
 import nl.jrdie.beancount.language.Journal;
 import nl.jrdie.beancount.language.JournalDeclaration;
@@ -19,7 +20,7 @@ public final class Beancount {
   private final BeancountConstrueStrategy construeStrategy;
 
   private Beancount() {
-    this.construeStrategy = new AsyncConstrueStrategy();
+    this.construeStrategy = new SyncConstrueStrategy();
   }
 
   public Journal createJournalSync(Path path) {
@@ -27,12 +28,26 @@ public final class Beancount {
   }
 
   public CompletableFuture<Journal> createJournal(Path path) {
-    return createJournal(path, BeancountParser.newParser());
+    return createJournal(path, BeancountParser.newParser(), true);
   }
 
-  private CompletableFuture<Journal> createJournal(Path path, BeancountParser beancountParser) {
+  @Beta
+  public Journal createJournalSyncWithoutIncludes(Path path) {
+    return createJournalWithoutIncludes(path).join();
+  }
+
+  @Beta
+  public CompletableFuture<Journal> createJournalWithoutIncludes(Path path) {
+    return createJournal(path, BeancountParser.newParser(), false);
+  }
+
+  private CompletableFuture<Journal> createJournal(
+      Path path, BeancountParser beancountParser, boolean resolveIncludePragmas) {
     final CompletableFuture<Journal> rootJournal =
         construeStrategy.construe(() -> beancountParser.parseJournal(path));
+    if (!resolveIncludePragmas) {
+      return rootJournal;
+    }
     return rootJournal.thenCompose(
         journal ->
             resolveIncludePragmas(path, journal, beancountParser)
@@ -56,7 +71,7 @@ public final class Beancount {
     for (int i = 0; i < includePragmas.size(); i++) {
       IncludePragma includePragma = includePragmas.get(i);
       Path includePath = theJournalPath.getParent().resolve(includePragma.filename());
-      includes[i] = createJournal(includePath, beancountParser);
+      includes[i] = createJournal(includePath, beancountParser, true);
     }
 
     CompletableFuture<Map<IncludePragma, Journal>> result = new CompletableFuture<>();

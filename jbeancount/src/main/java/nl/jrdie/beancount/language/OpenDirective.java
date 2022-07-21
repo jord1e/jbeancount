@@ -22,8 +22,9 @@ public final class OpenDirective
       Account account,
       List<Commodity> commodities,
       @Beta String bookingMethod,
-      Metadata metadata) {
-    super(sourceLocation, date, tagsAndLinks, metadata);
+      Metadata metadata,
+      Comment comment) {
+    super(sourceLocation, date, tagsAndLinks, metadata, comment);
     this.account = Objects.requireNonNull(account, "account");
     this.commodities = Objects.requireNonNull(commodities, "commodities");
     this.bookingMethod = bookingMethod;
@@ -61,7 +62,8 @@ public final class OpenDirective
             metadata(),
             account,
             commodities,
-            bookingMethod);
+            bookingMethod,
+            comment());
     builderConsumer.accept(b);
     return b.build();
   }
@@ -80,8 +82,9 @@ public final class OpenDirective
         Metadata metadata,
         Account account,
         List<Commodity> commodities,
-        String bookingMethod) {
-      super(sourceLocation, date, tagsAndLinks, metadata);
+        String bookingMethod,
+        Comment comment) {
+      super(sourceLocation, date, tagsAndLinks, metadata, comment);
       this.account = account;
       this.commodities = commodities;
       this.bookingMethod = bookingMethod;
@@ -96,7 +99,8 @@ public final class OpenDirective
           account,
           commodities,
           bookingMethod,
-          metadata());
+          metadata(),
+          comment());
     }
 
     public Account account() {

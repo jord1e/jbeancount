@@ -58,7 +58,7 @@ public class IncludeTreeCommand implements Callable<Integer> {
     if (useDot) {
       StringBuilder dotBuilder = new StringBuilder();
       dotBuilder.append("strict digraph {\n");
-      dotBuilder.append(" node [shape=plaintext]\n \"");
+      dotBuilder.append("  node [shape=plaintext]\n  \"");
       dotBuilder.append(file.getFileName().toString());
       dotBuilder.append("\" [shape=septagon]\n");
       if (!dotDirs.isEmpty()) {

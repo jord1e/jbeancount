@@ -6,8 +6,8 @@ import java.util.function.Consumer;
 import nl.jrdie.beancount.language.tools.NodeVisitor;
 
 public final class PushTagPragma extends AbstractPragmaNode<PushTagPragma, PushTagPragma.Builder> {
-  PushTagPragma(SourceLocation sourceLocation) {
-    super(sourceLocation);
+  PushTagPragma(SourceLocation sourceLocation, Comment comment) {
+    super(sourceLocation, comment);
   }
 
   @Override
