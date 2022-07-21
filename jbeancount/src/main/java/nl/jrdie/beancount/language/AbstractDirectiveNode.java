@@ -11,10 +11,7 @@ import org.jetbrains.annotations.Nullable;
 abstract sealed class AbstractDirectiveNode<
         T extends Node<T, B>, B extends AbstractDirectiveNode.Builder<T, B>>
     extends AbstractNode<T, B>
-    implements Node<T, B>,
-        DirectiveNode<T, B>,
-        JournalDeclaration<T, B>,
-        LinkAndTagContainer
+    implements Node<T, B>, DirectiveNode<T, B>, JournalDeclaration<T, B>, LinkAndTagContainer
     permits BalanceDirective,
         CloseDirective,
         CommodityDirective,

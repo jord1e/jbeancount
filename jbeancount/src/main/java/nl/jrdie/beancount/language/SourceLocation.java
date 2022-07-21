@@ -52,10 +52,14 @@ public final class SourceLocation {
 
   @Override
   public String toString() {
-    return "SourceLocation{" +
-            "line=" + line +
-            ", column=" + column +
-            ", sourceName='" + sourceName + '\'' +
-            '}';
+    return "SourceLocation{"
+        + "line="
+        + line
+        + ", column="
+        + column
+        + ", sourceName='"
+        + sourceName
+        + '\''
+        + '}';
   }
 }

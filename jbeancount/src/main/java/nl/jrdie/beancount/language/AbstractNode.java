@@ -6,7 +6,7 @@ import nl.jrdie.beancount.language.tools.internal.NodeChildrenContainer;
 
 abstract sealed class AbstractNode<T extends Node<T, B>, B extends AbstractNode.Builder<T, B>>
     implements Node<T, B>
-        permits AbstractDirectiveNode, AbstractPragmaNode, Comment, Eol, Journal, Posting {
+    permits AbstractDirectiveNode, AbstractPragmaNode, Comment, Eol, Journal, Posting {
 
   private final SourceLocation sourceLocation;
 
@@ -34,7 +34,12 @@ abstract sealed class AbstractNode<T extends Node<T, B>, B extends AbstractNode.
   public abstract static sealed class Builder<
           T extends Node<T, B>, B extends AbstractNode.Builder<T, B>>
       implements Node.Builder<T, B>
-          permits AbstractDirectiveNode.Builder, AbstractPragmaNode.Builder, Comment.Builder, Eol.Builder, Journal.Builder, Posting.Builder {
+      permits AbstractDirectiveNode.Builder,
+          AbstractPragmaNode.Builder,
+          Comment.Builder,
+          Eol.Builder,
+          Journal.Builder,
+          Posting.Builder {
     Builder() {}
 
     Builder(SourceLocation sourceLocation) {

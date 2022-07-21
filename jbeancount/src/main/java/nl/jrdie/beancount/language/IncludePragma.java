@@ -10,7 +10,8 @@ public final class IncludePragma extends AbstractPragmaNode<IncludePragma, Inclu
   private final String filename;
   private final Journal journal;
 
-  private IncludePragma(SourceLocation sourceLocation, String filename, Journal journal, Comment comment) {
+  private IncludePragma(
+      SourceLocation sourceLocation, String filename, Journal journal, Comment comment) {
     super(sourceLocation, comment);
     this.filename = Objects.requireNonNull(filename, "filename");
     this.journal = journal;
@@ -46,7 +47,8 @@ public final class IncludePragma extends AbstractPragmaNode<IncludePragma, Inclu
 
     private Builder() {}
 
-    private Builder(SourceLocation sourceLocation, String filename, Journal journal, Comment comment) {
+    private Builder(
+        SourceLocation sourceLocation, String filename, Journal journal, Comment comment) {
       super(sourceLocation, comment);
       this.filename = filename;
       this.journal = journal;
