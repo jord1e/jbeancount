@@ -1,0 +1,28 @@
+name: Build CLI
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  buildCli:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: gradle/wrapper-validation-action@v1
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          version: '22.1.0'
+          java-version: '17'
+          components: 'native-image'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: :jbeancount-cli:nativeBuild
+      - name: Upload CLI executable
+        uses: actions/upload-artifact@v3
+        with:
+          name: ubuntu-cli-executable
+          path: jbeancount-cli/build/native/nativeBuild/jbeancount
