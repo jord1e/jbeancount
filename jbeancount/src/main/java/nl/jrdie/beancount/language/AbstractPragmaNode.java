@@ -40,9 +40,10 @@ abstract sealed class AbstractPragmaNode<
       return comment;
     }
 
-    public Builder<T, B> comment(Comment comment) {
+    @SuppressWarnings("unchecked")
+    public B comment(Comment comment) {
       this.comment = comment;
-      return this;
+      return (B) this;
     }
   }
 }

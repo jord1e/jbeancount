@@ -133,36 +133,40 @@ abstract sealed class AbstractDirectiveNode<
       return date;
     }
 
-    public Builder<T, B> date(LocalDate date) {
+    @SuppressWarnings("unchecked")
+    public B date(LocalDate date) {
       this.date = date;
-      return this;
+      return (B) this;
     }
 
     public List<TagOrLink> tagsAndLinks() {
       return tagsAndLinks;
     }
 
-    public Builder<T, B> tagsAndLinks(List<TagOrLink> tagsAndLinks) {
+    @SuppressWarnings("unchecked")
+    public B tagsAndLinks(List<TagOrLink> tagsAndLinks) {
       this.tagsAndLinks = tagsAndLinks;
-      return this;
+      return (B) this;
     }
 
     public Metadata metadata() {
       return metadata;
     }
 
-    public Builder<T, B> metadata(Metadata metadata) {
+    @SuppressWarnings("unchecked")
+    public B metadata(Metadata metadata) {
       this.metadata = metadata;
-      return this;
+      return (B) this;
     }
 
     public Comment comment() {
       return comment;
     }
 
-    public Builder<T, B> comment(Comment comment) {
+    @SuppressWarnings("unchecked")
+    public B comment(Comment comment) {
       this.comment = comment;
-      return this;
+      return (B) this;
     }
   }
 }
