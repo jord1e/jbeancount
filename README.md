@@ -164,6 +164,7 @@ $ cat format.beancount
     ^with-salary
   Income:CoolCompany:Salary                                   -100.00
 ```
+
 ```shell
 $ jbeancount format format.beancount
 2022-01-01 query "test-query" "
@@ -216,6 +217,40 @@ $ jbeancount format format.beancount
     ^with-salary
   Income:CoolCompany:Salary                         -100.00
 ```
+
+### Inclusion tree
+
+The CLI features the `includes` command which you can use to print the inclusion tree.
+It supports optional (and experimental, currently) [Graphviz DOT](https://graphviz.org/) output.
+
+```shell
+# Windows batch tree command
+$ tree /F /A
+C:.
+|   accounts.beancount
+|   favaSettings.beancount
+|   masterFile.beancount
+|   prices.beancount
+|   transactions.beancount
+|
+\---data
+    |   2017.beancount
+    |   2018.beancount
+    |   2019.beancount
+    |   2020.beancount
+    |
+    +---2021
+    |       feb2021.beancount
+    |       jan2021.beancount
+    |
+    \---next
+            2023.beancount
+
+$ jbeancount includes masterFile.beancount --experimental-relative --experimental-dot | dot -Tpng -Kdot -ohierarchy.png
+```
+
+This results in the following image being created:
+![Inclusion hierarchy for the example directory structure above](./.github/include_hierarchy_example.png)
 
 ## Using the library
 
