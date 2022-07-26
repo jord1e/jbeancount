@@ -11,6 +11,15 @@ It *tries* not to discard tokens (like comments) and does not process pragmas at
 
 > **Warning** This library is not a Beancount replacement, or extension. It is solely a supplementary program.
 
+## Updates
+
+This codebase is in active development.
+The first release will soon be made on GitHub.
+This will include a Maven artifact and version-pinned binaries.
+Don't forget to watch the repository.
+
+![Displaying the GitHub watch button with the 'Releases' state in the 'Custom' submenu selected](./.github/watch.png)
+
 ## CLI
 
 Commandline binaries are available for Windows and Linux (built on Ubuntu) on
