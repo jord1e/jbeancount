@@ -26,8 +26,15 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           arguments: :jbeancount-cli:nativeBuild
-      - name: Upload CLI executable
+      - name: Upload Ubuntu CLI executable
+        if: ${{ matrix.os == 'ubuntu-latest'}}
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.os }}-cli-executable
+          name: ubuntu-cli-executable
           path: jbeancount-cli/build/native/nativeBuild/jbeancount
+      - name: Upload Windows CLI executable
+        if: ${{ matrix.os == 'windows-latest'}}
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-cli-executable
+          path: jbeancount-cli/build/native/nativeBuild/jbeancount.exe
