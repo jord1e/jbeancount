@@ -163,6 +163,8 @@ $ cat format.beancount
   Assets:Current:Z                              100.00 EUR
     ^with-salary
   Income:CoolCompany:Salary                                   -100.00
+```
+```shell
 $ jbeancount format format.beancount
 2022-01-01 query "test-query" "
   Test"
