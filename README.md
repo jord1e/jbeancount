@@ -60,8 +60,8 @@ $ jbeancount sort sort.beancount -o sort.beancount
 2022-01-02 * "Should be 2nd"
 2022-01-03 * "Should be 3rd"
 $ cat sort.beancount
-2022-01-02 * "Should be 2nd"
 2022-01-01 * "Should be 1st"
+2022-01-02 * "Should be 2nd"
 2022-01-03 * "Should be 3rd"
 ```
 
@@ -103,7 +103,7 @@ $ cat three.beancount
 ### Formatting your journal
 
 > **Warning** The formatting tool is unfinished.
-> It works the best on a file containing only transactions.
+> It works best on a file containing only transactions.
 > In the future, it will be improved to handle other directives better
 > (i.e. pad with balance constructs and comment-seperated grouping).
 
