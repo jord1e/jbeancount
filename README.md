@@ -35,7 +35,7 @@ Commands:
 
 ### Sorting transactions
 
-> **Info** This tool currently only sorts consecutive transactions in files.
+> **Note** This tool currently only sorts consecutive transactions in files.
 > In the future, a better sorting heuristic will be implemented.
 > It takes the current line into account as a secondary sorting parameter.
 > This means that transaction order on the same dates is maintained.
@@ -174,7 +174,7 @@ $ cat format.beancount
 <details><summary>:sparkles: After formatting</summary>
 <p>
 
-> **Info** Notice that all commodities (currencies) are aligned.
+> **Note** Notice that all commodities (currencies) are aligned.
 
 ```shell
 $ jbeancount format format.beancount
