@@ -13,7 +13,7 @@ public final class BalanceDirective
   private final Account account;
   private final Amount amount;
 
-  public BalanceDirective(
+  private BalanceDirective(
       SourceLocation sourceLocation,
       LocalDate date,
       List<TagOrLink> tagsAndLinks,

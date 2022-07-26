@@ -29,6 +29,7 @@ subprojects {
     configure<SpotlessExtension>() {
         java {
             googleJavaFormat("1.15.0")
+            targetExclude("**/build/generated-src/**")
         }
     }
 }

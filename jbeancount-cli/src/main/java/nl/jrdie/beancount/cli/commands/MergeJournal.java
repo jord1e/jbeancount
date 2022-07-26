@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import nl.jrdie.beancount.Beancount;
 import nl.jrdie.beancount.BeancountInvalidStateException;
-import nl.jrdie.beancount.BeancountPrinter;
 import nl.jrdie.beancount.cli.commands.mixin.SingleOutput;
 import nl.jrdie.beancount.cli.internal.transformations.FlattenJournal;
+import nl.jrdie.beancount.io.SimpleBeancountPrinter;
 import nl.jrdie.beancount.language.Journal;
 import nl.jrdie.beancount.language.JournalDeclaration;
 import nl.jrdie.beancount.language.SourceLocation;
@@ -80,7 +80,7 @@ public class MergeJournal implements Callable<Integer> {
                                 builder.declarations(combinedDeclarations);
                               }));
     }
-    BeancountPrinter beancountPrinter = BeancountPrinter.newDefaultPrinter();
+    SimpleBeancountPrinter beancountPrinter = SimpleBeancountPrinter.newDefaultPrinter();
     final String journalAsString = beancountPrinter.print(masterJournal);
     if (output.hasOutput()) {
       Files.writeString(output.outputFile(), journalAsString, StandardCharsets.UTF_8);

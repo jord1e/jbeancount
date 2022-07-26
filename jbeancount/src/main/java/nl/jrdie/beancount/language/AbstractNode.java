@@ -52,9 +52,10 @@ abstract sealed class AbstractNode<T extends Node<T, B>, B extends AbstractNode.
       return sourceLocation;
     }
 
-    public Builder<T, B> sourceLocation(SourceLocation sourceLocation) {
+    @SuppressWarnings("unchecked")
+    public B sourceLocation(SourceLocation sourceLocation) {
       this.sourceLocation = sourceLocation;
-      return this;
+      return (B) this;
     }
   }
 }

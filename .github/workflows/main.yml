@@ -7,7 +7,12 @@ on:
 
 jobs:
   buildCli:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
       - uses: gradle/wrapper-validation-action@v1
@@ -24,5 +29,5 @@ jobs:
       - name: Upload CLI executable
         uses: actions/upload-artifact@v3
         with:
-          name: ubuntu-cli-executable
+          name: ${{ matrix.os }}-cli-executable
           path: jbeancount-cli/build/native/nativeBuild/jbeancount

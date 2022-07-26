@@ -94,7 +94,7 @@ abstract sealed class AbstractDirectiveNode<
     return this.tags = Collections.unmodifiableCollection(tags);
   }
 
-  public abstract static sealed class Builder<
+  abstract static sealed class Builder<
           T extends Node<T, B>, B extends AbstractDirectiveNode.Builder<T, B>>
       extends AbstractNode.Builder<T, B>
       permits BalanceDirective.Builder,

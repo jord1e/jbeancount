@@ -204,6 +204,9 @@ public class BeancountAntlrToLanguage {
   }
 
   public List<Posting> createPostingList(BeancountAntlrParser.PostingListContext ctx) {
+    if (ctx == null || ctx.pm == null) {
+      return ImmutableKit.emptyList();
+    }
     return map(ctx.pm, this::createPosting);
   }
 

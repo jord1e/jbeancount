@@ -6,6 +6,7 @@ import nl.jrdie.beancount.cli.commands.IncludeTreeCommand;
 import nl.jrdie.beancount.cli.commands.InternalCommand;
 import nl.jrdie.beancount.cli.commands.MergeJournal;
 import nl.jrdie.beancount.cli.commands.SortJournal;
+import nl.jrdie.beancount.cli.commands.jordie.JordieCommand;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
@@ -15,6 +16,7 @@ import picocli.CommandLine.Command;
     version = "jbeancount 0.1",
     description = "Extension utilities for the Beancount plain text accounting tool",
     subcommands = {
+      JordieCommand.class,
       MergeJournal.class,
       FormatJournal.class,
       CheckJournal.class,

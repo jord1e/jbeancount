@@ -1,4 +1,4 @@
-package nl.jrdie.beancount;
+package nl.jrdie.beancount.io;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -68,9 +68,10 @@ import nl.jrdie.beancount.language.TagValue;
 import nl.jrdie.beancount.language.TransactionDirective;
 import nl.jrdie.beancount.language.UnaryCompoundExpression;
 import nl.jrdie.beancount.util.Assert;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class BeancountPrinter {
+public final class SimpleBeancountPrinter implements BeancountPrinter {
 
   private static final Pattern VALID_INDENTATION_SEQUENCE_PATTERN = Pattern.compile("^[ \t]+$");
 
@@ -79,7 +80,7 @@ public final class BeancountPrinter {
   }
 
   @Beta
-  public static BeancountPrinter newDefaultPrinter() {
+  public static SimpleBeancountPrinter newDefaultPrinter() {
     return newPrinter()
         .indentationSequence("  ") // Two spaces
         .currencyColumn(61) // TODO This is temporary, infer currency column from file context
@@ -88,7 +89,7 @@ public final class BeancountPrinter {
   }
 
   @Beta
-  public static BeancountPrinter newFavaPrinter() {
+  public static SimpleBeancountPrinter newFavaPrinter() {
     return newPrinter()
         .indentationSequence("  ") // Two spaces
         .currencyColumn(61) // Fava default
@@ -107,7 +108,8 @@ public final class BeancountPrinter {
   // Two levels of indentation is often the maximum (metadata on postings is the 2nd level)
   private String[] indents = new String[2];
 
-  private BeancountPrinter(int currencyColumn, String indentationSequence, boolean compactMode) {
+  private SimpleBeancountPrinter(
+      int currencyColumn, String indentationSequence, boolean compactMode) {
     if (currencyColumn < 0) {
       throw new IllegalArgumentException("The currency column must be positive");
     }
@@ -130,8 +132,8 @@ public final class BeancountPrinter {
 
     private Builder() {}
 
-    public BeancountPrinter build() {
-      return new BeancountPrinter(currencyColumn, indentationSequence, compactMode);
+    public SimpleBeancountPrinter build() {
+      return new SimpleBeancountPrinter(currencyColumn, indentationSequence, compactMode);
     }
 
     public int currencyColumn() {
@@ -186,6 +188,13 @@ public final class BeancountPrinter {
             () -> indents[nestingLevel] = indentationSequence.repeat(nestingLevel));
   }
 
+  private BeancountIOException typeNotHandled(Object type) {
+    if (type == null) {
+      return new BeancountIOException("This printer cannot handle null values");
+    }
+    return new BeancountIOException("This printer cannot handle " + type.getClass().getName());
+  }
+
   private void dent(PrintWriter pw) {
     pw.print(indent);
   }
@@ -202,7 +211,10 @@ public final class BeancountPrinter {
     pw.print('"');
   }
 
-  public String print(Journal journal) {
+  @Override
+  public @NotNull String print(@NotNull Journal journal) throws BeancountIOException {
+    Objects.requireNonNull(journal, "journal");
+
     StringWriter sw = new StringWriter();
     PrintWriter pw = new PrintWriter(sw);
 
@@ -244,7 +256,7 @@ public final class BeancountPrinter {
       } else if (declaration instanceof Eol) {
         nl(pw);
       } else {
-        throw new BeancountInvalidStateException();
+        throw typeNotHandled(declaration);
       }
     }
 
@@ -427,6 +439,9 @@ public final class BeancountPrinter {
       quote(pw);
       pw.print(td.payee());
       quote(pw);
+      if (td.narration() == null) {
+        pw.print(" \"\"");
+      }
     }
     if (td.narration() != null) {
       space(pw);
@@ -482,9 +497,9 @@ public final class BeancountPrinter {
   }
 
   private void print(PrintWriter pw, Posting p) {
-    if (p == null) {
-      return; // TODO, this is a comment
-    }
+    //    if (p == null) {
+    //      return; // TODO, this is a comment
+    //    }
     final String account = p.account() == null ? "" : account(p.account());
     final ArithmeticExpression ae = p.amountExpression();
     final String num = ae == null ? "" : arithmeticExpression(ae);
@@ -581,6 +596,8 @@ public final class BeancountPrinter {
             print(pw, dv);
           } else if (ccv instanceof StringValue sv) {
             print(pw, sv);
+          } else {
+            throw typeNotHandled(ccv);
           }
         },
         () -> pw.print(", "));
@@ -624,6 +641,8 @@ public final class BeancountPrinter {
             print(pw, tag);
           } else if (tagOrLink instanceof Link link) {
             print(pw, link);
+          } else {
+            throw typeNotHandled(tagOrLink);
           }
         },
         () -> space(pw));
@@ -668,7 +687,7 @@ public final class BeancountPrinter {
           } else if (l instanceof Comment c) {
             print(pw, c);
           } else {
-            Assert.shouldNeverHappen();
+            throw typeNotHandled(l);
           }
         },
         () -> {
@@ -712,7 +731,7 @@ public final class BeancountPrinter {
           + " / "
           + arithmeticExpression(de.rightExpression());
     } else {
-      throw new BeancountInvalidStateException();
+      throw typeNotHandled(ae);
     }
   }
 
@@ -783,7 +802,7 @@ public final class BeancountPrinter {
       pw.print(" / ");
       print(pw, de.rightExpression());
     } else {
-      Assert.shouldNeverHappen();
+      throw typeNotHandled(ae);
     }
   }
 
@@ -809,7 +828,7 @@ public final class BeancountPrinter {
     } else if (mv instanceof Account a) {
       print(pw, a);
     } else {
-      Assert.shouldNeverHappen();
+      throw typeNotHandled(mv);
     }
   }
 }

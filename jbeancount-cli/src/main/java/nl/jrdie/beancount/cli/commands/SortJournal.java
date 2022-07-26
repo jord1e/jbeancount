@@ -5,9 +5,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.Callable;
 import nl.jrdie.beancount.Beancount;
-import nl.jrdie.beancount.BeancountPrinter;
 import nl.jrdie.beancount.cli.commands.mixin.SingleOutput;
 import nl.jrdie.beancount.cli.internal.transformations.SortTransactions;
+import nl.jrdie.beancount.io.SimpleBeancountPrinter;
 import nl.jrdie.beancount.language.CustomDirective;
 import nl.jrdie.beancount.language.Journal;
 import nl.jrdie.beancount.language.JournalDeclaration;
@@ -40,7 +40,7 @@ public class SortJournal implements Callable<Integer> {
       }
     }
     journal = SortTransactions.sortTransactions(journal);
-    BeancountPrinter beancountPrinter = BeancountPrinter.newDefaultPrinter();
+    SimpleBeancountPrinter beancountPrinter = SimpleBeancountPrinter.newDefaultPrinter();
     final String journalAsString = beancountPrinter.print(journal);
     if (output.hasOutput()) {
       Files.writeString(output.outputFile(), journalAsString, StandardCharsets.UTF_8);

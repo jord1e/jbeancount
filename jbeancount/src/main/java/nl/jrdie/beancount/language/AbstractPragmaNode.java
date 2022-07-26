@@ -20,7 +20,7 @@ abstract sealed class AbstractPragmaNode<
     return comment;
   }
 
-  public abstract static sealed class Builder<
+  abstract static sealed class Builder<
           T extends Node<T, B>, B extends AbstractPragmaNode.Builder<T, B>>
       extends AbstractNode.Builder<T, B>
       permits IncludePragma.Builder,
