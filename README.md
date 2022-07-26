@@ -109,6 +109,9 @@ $ cat three.beancount
 
 The CLI contains a tool (`jbeancount format`) for formatting your journals.
 
+<details><summary>:wastebasket: Before formatting</summary>
+<p>
+
 ```shell
 $ cat format.beancount
 2022-01-01 query "test-query" "
@@ -165,6 +168,14 @@ $ cat format.beancount
   Income:CoolCompany:Salary                                   -100.00
 ```
 
+</p>
+</details>
+
+<details><summary>:sparkles: After formatting</summary>
+<p>
+
+> **Info** Notice that all commodities (currencies) are aligned.
+
 ```shell
 $ jbeancount format format.beancount
 2022-01-01 query "test-query" "
@@ -218,6 +229,9 @@ $ jbeancount format format.beancount
   Income:CoolCompany:Salary                         -100.00
 ```
 
+</p>
+</details>
+
 ### Inclusion tree
 
 The CLI features the `includes` command which you can use to print the inclusion tree.
@@ -251,6 +265,38 @@ $ jbeancount includes masterFile.beancount --experimental-relative --experimenta
 
 This results in the following image being created:
 ![Inclusion hierarchy for the example directory structure above](./.github/include_hierarchy_example.png)
+
+<details><summary>Graphviz DOT output</summary>
+<p>
+
+Try it out
+on [Graphviz Online](https://dreampuf.github.io/GraphvizOnline/#strict%20digraph%20%7B%0A%20%20node%20%5Bshape%3Dplaintext%5D%0A%20%20%22masterFile.beancount%22%20%5Bshape%3Dseptagon%5D%0A%20%20%22next%22%20%5Bshape%3Dbox3d%5D%0A%20%20%22data%22%20%5Bshape%3Dbox3d%5D%0A%20%20%222021%22%20%5Bshape%3Dbox3d%5D%0A%20%20%22masterFile.beancount%22%20-%3E%20%22accounts.beancount%22%0A%20%20%22masterFile.beancount%22%20-%3E%20%22prices.beancount%22%0A%20%20%22masterFile.beancount%22%20-%3E%20%22favaSettings.beancount%22%0A%20%20%22masterFile.beancount%22%20-%3E%20%22transactions.beancount%22%0A%20%20%22transactions.beancount%22%20-%3E%20%22data%22%20-%3E%20%222017.beancount%22%0A%20%20%22transactions.beancount%22%20-%3E%20%22data%22%20-%3E%20%222018.beancount%22%0A%20%20%22transactions.beancount%22%20-%3E%20%22data%22%20-%3E%20%222019.beancount%22%0A%20%20%22transactions.beancount%22%20-%3E%20%22data%22%20-%3E%20%222020.beancount%22%0A%20%20%22transactions.beancount%22%20-%3E%20%22data%22%20-%3E%20%222021.beancount%22%0A%20%20%22data%22%20-%3E%20%222021.beancount%22%20-%3E%20%22data%22%20-%3E%20%222021%22%20-%3E%20%22jan2021.beancount%22%0A%20%20%22data%22%20-%3E%20%222021.beancount%22%20-%3E%20%22data%22%20-%3E%20%222021%22%20-%3E%20%22feb2021.beancount%22%0A%20%20%22transactions.beancount%22%20-%3E%20%22data%22%20-%3E%20%22next%22%20-%3E%20%222023.beancount%22%0A%7D%0A)
+.
+
+```dot
+strict digraph {
+  node [shape=plaintext]
+  "masterFile.beancount" [shape=septagon]
+  "next" [shape=box3d]
+  "data" [shape=box3d]
+  "2021" [shape=box3d]
+  "masterFile.beancount" -> "accounts.beancount"
+  "masterFile.beancount" -> "prices.beancount"
+  "masterFile.beancount" -> "favaSettings.beancount"
+  "masterFile.beancount" -> "transactions.beancount"
+  "transactions.beancount" -> "data" -> "2017.beancount"
+  "transactions.beancount" -> "data" -> "2018.beancount"
+  "transactions.beancount" -> "data" -> "2019.beancount"
+  "transactions.beancount" -> "data" -> "2020.beancount"
+  "transactions.beancount" -> "data" -> "2021.beancount"
+  "data" -> "2021.beancount" -> "data" -> "2021" -> "jan2021.beancount"
+  "data" -> "2021.beancount" -> "data" -> "2021" -> "feb2021.beancount"
+  "transactions.beancount" -> "data" -> "next" -> "2023.beancount"
+}
+```
+
+</p>
+</details>
 
 ## Using the library
 
