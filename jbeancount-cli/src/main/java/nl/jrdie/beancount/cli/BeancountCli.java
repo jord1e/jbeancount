@@ -1,5 +1,6 @@
 package nl.jrdie.beancount.cli;
 
+import java.nio.file.Path;
 import nl.jrdie.beancount.cli.commands.CheckJournal;
 import nl.jrdie.beancount.cli.commands.FormatJournal;
 import nl.jrdie.beancount.cli.commands.IncludeTreeCommand;
@@ -7,6 +8,7 @@ import nl.jrdie.beancount.cli.commands.InternalCommand;
 import nl.jrdie.beancount.cli.commands.MergeJournal;
 import nl.jrdie.beancount.cli.commands.SortJournal;
 import nl.jrdie.beancount.cli.commands.jordie.JordieCommand;
+import nl.jrdie.beancount.cli.picocli.PathConverter;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
@@ -31,7 +33,10 @@ public final class BeancountCli {
 
   public static void main(String... args) {
     @SuppressWarnings("InstantiationOfUtilityClass")
-    final int exitCode = new CommandLine(new BeancountCli()).execute(args);
+    final int exitCode =
+        new CommandLine(new BeancountCli())
+            .registerConverter(Path.class, new PathConverter())
+            .execute(args);
     System.exit(exitCode);
   }
 }
