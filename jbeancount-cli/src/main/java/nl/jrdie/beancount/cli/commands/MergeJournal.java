@@ -55,31 +55,26 @@ public class MergeJournal implements Callable<Integer> {
     if (files.isEmpty()) {
       throw new BeancountInvalidStateException();
     }
-    final Journal masterJournal;
-    if (files.size() == 1) {
-      masterJournal = beancount.createJournalSync(files.get(0));
-    } else {
-      masterJournal =
-          files.stream()
-              .map(beancount::createJournalSync)
-              .reduce(
-                  Journal.newJournal()
-                      .declarations(ImmutableKit.emptyList())
-                      .sourceLocation(SourceLocation.EMPTY)
-                      .build(),
-                  (journal, journal2) ->
-                      FlattenJournal.flattenJournal(journal, recurse, keepIncludePragmas)
-                          .transform(
-                              builder -> {
-                                List<JournalDeclaration<?, ?>> combinedDeclarations =
-                                    new ArrayList<>(builder.declarations());
-                                combinedDeclarations.addAll(
-                                    FlattenJournal.flattenJournal(
-                                            journal2, recurse, keepIncludePragmas)
-                                        .declarations());
-                                builder.declarations(combinedDeclarations);
-                              }));
-    }
+    final Journal masterJournal =
+        files.stream()
+            .map(beancount::createJournalSync)
+            .reduce(
+                Journal.newJournal()
+                    .declarations(ImmutableKit.emptyList())
+                    .sourceLocation(SourceLocation.EMPTY)
+                    .build(),
+                (journal, journal2) ->
+                    FlattenJournal.flattenJournal(journal, recurse, keepIncludePragmas)
+                        .transform(
+                            builder -> {
+                              List<JournalDeclaration<?, ?>> combinedDeclarations =
+                                  new ArrayList<>(builder.declarations());
+                              combinedDeclarations.addAll(
+                                  FlattenJournal.flattenJournal(
+                                          journal2, recurse, keepIncludePragmas)
+                                      .declarations());
+                              builder.declarations(combinedDeclarations);
+                            }));
     SimpleBeancountPrinter beancountPrinter = SimpleBeancountPrinter.newDefaultPrinter();
     final String journalAsString = beancountPrinter.print(masterJournal);
     if (output.hasOutput()) {
