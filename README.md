@@ -80,7 +80,7 @@ The `merge` command merges one or more Beancount files together into one coheren
 
 You can redirect output to either stdout, or a file.
 
-By specifying the `--recurisve` (short: `-r`) option,
+By specifying the `--recursive` (short: `-r`) option,
 files included by the use of `include` pragmas will also be merged.
 
 By default, `include` pragmas are removed from the merged file.
