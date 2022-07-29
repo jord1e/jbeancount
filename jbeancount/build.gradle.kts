@@ -61,3 +61,10 @@ tasks {
 tasks.getByName<Test>("test") {
     useJUnitPlatform()
 }
+
+spotless {
+    antlr4 {
+        antlr4Formatter("1.2.1")
+        target("src/*/antlr/**/*.g4")
+    }
+}
