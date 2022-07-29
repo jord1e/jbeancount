@@ -8,6 +8,7 @@ import nl.jrdie.beancount.cli.commands.InternalCommand;
 import nl.jrdie.beancount.cli.commands.MergeJournal;
 import nl.jrdie.beancount.cli.commands.SortJournal;
 import nl.jrdie.beancount.cli.commands.jordie.JordieCommand;
+import nl.jrdie.beancount.cli.picocli.BeancountExecutionExceptionHandler;
 import nl.jrdie.beancount.cli.picocli.PathConverter;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -41,6 +42,7 @@ public final class BeancountCli {
     @SuppressWarnings("InstantiationOfUtilityClass")
     final CommandLine commandLine = new CommandLine(new BeancountCli());
     commandLine.registerConverter(Path.class, new PathConverter());
+    commandLine.setExecutionExceptionHandler(new BeancountExecutionExceptionHandler());
 
     // To parse version flag, maybe implement different behaviour in the future
     commandLine.parseArgs(args);

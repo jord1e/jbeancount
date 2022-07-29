@@ -6,11 +6,15 @@ import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicLong;
 import nl.jrdie.beancount.language.Journal;
+import nl.jrdie.beancount.language.SourceLocation;
 import nl.jrdie.beancount.parser.antlr.BeancountAntlrLexer;
 import nl.jrdie.beancount.parser.antlr.BeancountAntlrParser;
+import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
 
 public class BeancountParser {
 
@@ -40,11 +44,51 @@ public class BeancountParser {
     }
 
     final BeancountAntlrLexer lexer = new BeancountAntlrLexer(charStream);
+    lexer.removeErrorListeners();
+    lexer.addErrorListener(
+        new BaseErrorListener() {
+          @Override
+          public void syntaxError(
+              Recognizer<?, ?> recognizer,
+              Object offendingSymbol,
+              int line,
+              int charPositionInLine,
+              String message,
+              RecognitionException e) {
+            SourceLocation sourceLocation =
+                AntlrHelper.createSourceLocation(line, charPositionInLine, sourceName);
+            throw new InvalidSyntaxException(
+                sourceLocation,
+                message,
+                AntlrHelper.createPreview(
+                    charStream, line, charPositionInLine, charPositionInLine + 1));
+          }
+        });
 
     final CommonTokenStream tokens = new CommonTokenStream(lexer);
 
     final nl.jrdie.beancount.parser.antlr.BeancountAntlrParser antlrParser =
         new nl.jrdie.beancount.parser.antlr.BeancountAntlrParser(tokens);
+    antlrParser.removeErrorListeners();
+    antlrParser.addErrorListener(
+        new BaseErrorListener() {
+          @Override
+          public void syntaxError(
+              Recognizer<?, ?> recognizer,
+              Object offendingSymbol,
+              int line,
+              int charPositionInLine,
+              String message,
+              RecognitionException e) {
+            SourceLocation sourceLocation =
+                AntlrHelper.createSourceLocation(line, charPositionInLine, sourceName);
+            throw new InvalidSyntaxException(
+                sourceLocation,
+                message,
+                AntlrHelper.createPreview(
+                    charStream, line, charPositionInLine, charPositionInLine + 1));
+          }
+        });
 
     final BeancountAntlrToLanguage toLanguage = new BeancountAntlrToLanguage(tokens, sourceName);
 
