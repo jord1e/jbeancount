@@ -85,7 +85,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 @SuppressWarnings({"unused", "SpellCheckingInspection"})
-public class BeancountAntlrToLanguage {
+public final class BeancountAntlrToLanguage {
 
   private final String sourceName;
 
@@ -786,7 +786,8 @@ public class BeancountAntlrToLanguage {
     if (numberToken.getType() != BeancountAntlrParser.NUMBER) {
       Assert.shouldNeverHappen();
     }
-    return new BigDecimal(numberToken.getText());
+    final String text = numberToken.getText().replace(",", "");
+    return new BigDecimal(text);
   }
 
   public ConstantExpression createConstantExpression(BeancountAntlrParser.ConstantContext ctx) {
