@@ -40,8 +40,16 @@ public final class BeancountCli {
   public static void main(String... args) {
     @SuppressWarnings("InstantiationOfUtilityClass")
     final CommandLine commandLine = new CommandLine(new BeancountCli());
-    commandLine.printVersionHelp(System.out, Help.Ansi.AUTO, BeancountCli.VERSION);
     commandLine.registerConverter(Path.class, new PathConverter());
+
+    // To parse version flag, maybe implement different behaviour in the future
+    commandLine.parseArgs(args);
+    if (commandLine.isVersionHelpRequested()) {
+      commandLine.printVersionHelp(System.out, Help.Ansi.AUTO, BeancountCli.VERSION);
+      return;
+    }
+
+    // Otherwise, execute the command
     final int exitCode = commandLine.execute(args);
     System.exit(exitCode);
   }
