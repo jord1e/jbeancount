@@ -18,8 +18,7 @@ import picocli.CommandLine.Help;
     mixinStandardHelpOptions = true,
     version = {
       "JBeancount %1$s",
-      "Running on Java version ${java.version} by ${java.vendor} (${java.vm.name} version ${java.vm.version})",
-      "Running on ${os.name} version ${os.version} (${os.arch})"
+      "Java ${java.version} by ${java.vendor} (${java.vm.name}, ${java.vm.version})"
     },
     description = "Extension utilities for the Beancount plain text accounting tool",
     subcommands = {
