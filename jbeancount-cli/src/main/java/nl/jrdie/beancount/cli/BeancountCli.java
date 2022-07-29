@@ -11,11 +11,16 @@ import nl.jrdie.beancount.cli.commands.jordie.JordieCommand;
 import nl.jrdie.beancount.cli.picocli.PathConverter;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Help;
 
 @Command(
     name = "jbeancount",
     mixinStandardHelpOptions = true,
-    version = "jbeancount 0.1",
+    version = {
+      "JBeancount %1$s",
+      "Running on Java version ${java.version} by ${java.vendor} (${java.vm.name} version ${java.vm.version})",
+      "Running on ${os.name} version ${os.version} (${os.arch})"
+    },
     description = "Extension utilities for the Beancount plain text accounting tool",
     subcommands = {
       JordieCommand.class,
@@ -29,14 +34,16 @@ import picocli.CommandLine.Command;
     scope = CommandLine.ScopeType.INHERIT)
 public final class BeancountCli {
 
+  private static final String VERSION = "prerelease";
+
   private BeancountCli() {}
 
   public static void main(String... args) {
     @SuppressWarnings("InstantiationOfUtilityClass")
-    final int exitCode =
-        new CommandLine(new BeancountCli())
-            .registerConverter(Path.class, new PathConverter())
-            .execute(args);
+    final CommandLine commandLine = new CommandLine(new BeancountCli());
+    commandLine.printVersionHelp(System.out, Help.Ansi.AUTO, BeancountCli.VERSION);
+    commandLine.registerConverter(Path.class, new PathConverter());
+    final int exitCode = commandLine.execute(args);
     System.exit(exitCode);
   }
 }
